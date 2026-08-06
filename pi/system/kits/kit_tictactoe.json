@@ -1,0 +1,17 @@
+{
+    "id": "tictactoe",
+    "displayname": "Tic Tac Toe!",
+    "home_command": "s:1.0,a:90,b:138.36,c:132,d:90,e:10,f:90",
+    "needs_camera": true,
+    "webpage": "tictactoe.html",
+    "runcmd": "tictactoe",
+    "bounding_box":
+    {
+        "xmin":0,
+        "xmax":0,
+        "ymin":0,
+        "ymax":0,
+        "zmin":0,
+        "zmax":0
+    }
+}

@@ -1,0 +1,1 @@
+{"sequence":[{"command":"stand","delay":"0.2","speed":"1.0","type":"action"},{"command":"lookdownclosely","delay":"1","speed":"1.0","type":"posname"},{"command":"ignore","delay":"1","speed":"","type":"control"},{"command":"stand","delay":"2","speed":"2.5","type":"action"}]}

@@ -1,0 +1,1 @@
+{"sequence":[{"command":"beforelookatboard","delay":"1.25","speed":"1.0","type":"posname"},{"command":"beforelookatboardmid","delay":"1.0","speed":"1.0","type":"posname"},{"command":"lookatboard","delay":"1.0","speed":"1.0","type":"posname"}]}

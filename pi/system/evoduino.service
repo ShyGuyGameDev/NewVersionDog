@@ -1,0 +1,19 @@
+[Unit]
+Description=evoduino
+Requires=network-online.target rosmasterpi
+Wants=systemd-networkd-wait-online.service
+After=network.target sysinit.target network-online.target systemd-networkd-wait-online.service rosmasterpi
+
+
+[Service]
+ExecStart=/home/pi/system/runevoduino.sh
+WorkingDirectory=/home/pi/system
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=3
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html>
+    <meta name="viewport" content="width=device-width">
+    <head>
+<style type='text/css'>
+
+body
+{
+    font-family: arial;
+    font-size:12px;
+    margin:0;
+}
+.nav
+{
+    text-align:center;
+    color:black;
+    line-height: 2em;
+    position:relative;
+}
+.connoff
+{
+    display:inline-block;
+    background-color:red;
+    color:white;
+    padding:2px;
+    border-radius:5px;
+    position:absolute;
+    right:2px;
+}
+    .connon
+{
+    display:inline-block;
+    background-color:green;
+    color:white;
+    padding:2px;
+    border-radius:5px;
+    position:absolute;
+    right:2px;
+}
+
+.slidecontainer {
+width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+-webkit-appearance: none;  /* Override default CSS styles */
+appearance: none;
+width: 100%; /* Full-width */
+height: 12px; /* Specified height */
+border-radius: 5px;
+background: #d3d3d3; /* Grey background */
+outline: none; /* Remove outline */
+opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+-webkit-transition: .2s; /* 0.2 seconds transition on hover */
+transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+opacity: 1; /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+-webkit-appearance: none; /* Override default look */
+appearance: none;
+width: 20px; /* Set a specific slider handle width */
+height: 20px; /* Slider handle height */
+border-radius: 50%;
+background: #4CAF50; /* Green background */
+cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+width: 20px; /* Set a specific slider handle width */
+height: 20px; /* Slider handle height */
+border-radius: 50%;
+background: #4CAF50; /* Green background */
+cursor: pointer; /* Cursor on hover */
+}
+
+/* The switch - the box around the slider */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+
+/* Hide default HTML checkbox */
+    .switch input {display:none;}
+
+/* The slider */
+    .swslider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+            -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    .swslider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+            -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+input:checked + .swslider {
+    background-color: #2196F3;
+}
+
+input:focus + .swslider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .swslider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Rounded sliders */
+    .swslider.round {
+        border-radius: 34px;
+    }
+
+    .swslider.round:before {
+        border-radius: 50%;
+    }
+.lighttable
+{
+}
+.lighttable tr
+{
+}
+.errmsg
+{
+  display:block;
+  position:fixed;
+  bottom:0px;
+  left:0px;
+  border:1px solid red;
+  z-index:100;
+  background-color:white;
+  border-radius:5px
+}
+
+.objlist td
+{
+    border-top: 1px solid lightgray;
+    border-radius
+    padding:5px;
+}
+
+.rotated
+{
+    transform: rotate(90deg);
+    -webkit-transform:rotate(90deg);
+    -moz-transform:rotate(90deg);
+    -o-transform:rotate(90deg);
+}
+
+.section
+{
+    display: inline-block;
+    //border: 1px solid lightgray;
+    border-radius: 5px;
+    vertical-align: top;
+    margin: 2px;
+    position:relative;
+    float: top;
+}
+.sectionhide
+{
+    display: none;
+}
+/*
+.sectionhide
+{
+    display: inline-block;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    vertical-align: top;
+    margin: 2px;
+    position:relative;
+    overflow:hidden;
+    height:20px;
+    max-height:20px;
+    width:50px;
+    max-width:50px;
+}
+*/
+.cps
+{
+    position:absolute;
+    right:7px;
+    top:-2px;
+    font-size:2em;
+    font-weight:bold
+}
+
+#section-arm td
+{
+//border:1px solid red;
+}
+
+.tab
+{
+    text-align:center;
+    border-radius: 5px 5px 0 0;
+    border: 1px solid lightgray;
+    font-size: 120%;
+    background-color:inherit;
+    height:40px;
+}
+.tabhi
+{
+    text-align:center;
+    border-radius: 5px 5px 0 0;
+    border: 1px solid lightgray;
+    font-size: 120%;
+    background-color: lightgray;
+    height:40px;
+}
+.cbtn
+{
+    display:inline-block;
+    height: 40px;
+}
+/*For the robot 2d slider */
+#widget {
+  border: 1px solid silver;
+}
+#markerbounds {
+  margin: auto;
+  position: relative;
+}
+#box {
+  margin: auto;
+  background-color: #ededed;
+  position: absolute;
+}
+#marker {
+  position: relative;
+  background-color: black;
+  border-radius: 50px;
+}
+#coord {
+  font-family: serif;
+  font-size: 13px;
+  margin: 1px;
+}
+/*For the robot 2d slider */
+</style>
+
+
+<script src="three.js"></script>
+<script language='javascript' type='text/javascript' src='ajaxutils.js' ></script>
+<script language='javascript' type='text/javascript' src='objects3d.js' ></script>
+<script language='javascript' type='text/javascript' src='decompress-lzf.js' ></script>
+<script language='javascript' type='text/javascript' src='pcd-loader.js' ></script>
+<script language='javascript' type='text/javascript' src='jquery-2.1.3.min.js' ></script>
+<script language='javascript' type='text/javascript' src='jquery-ui-1.11.2.min.js' ></script>
+<script language='javascript' type='text/javascript' src='jquery-ui-touch-punch-0.2.3.min.js' ></script>
+<script src="OrbitControls.js"></script>
+
+<script type='text/javascript' >
+
+var grobot = {};
+var gtarget = {};
+
+function showerror(msg)
+{
+    did("errmsg").innerHTML=msg;
+    window.setTimeout( "did('errmsg').innerHTML='';",1500 );
+}
+function isPersistentObject(id)
+{
+    return (hasProp(grobot,id) || hasProp(world.objects,id));
+}
+
+var g_id_list = {}; // contains id's listed in browser
+function createRobot(robot,target)
+{
+    grobot = robot["objects"];
+    loadObjects3D( robot["objects"] );
+    gtarget = target["objects"];
+    loadObjects3D( target["objects"] );
+}
+
+</script>
+<script type='text/javascript' >
+
+var stimeout = null; //for repeatedly fetching status
+var rptimeout = null;
+var reconnect_timer = false;
+var connected = false;
+
+function clearTimers()
+{
+    if (stimeout)
+    {
+        window.clearTimeout(stimeout);
+        stimeout = null;
+    }
+}
+var reconnect_timer = null;
+function networkError()
+{
+    did("conn").innerHTML="Disconnected";
+    did("conn").className="connoff";
+    if ( connected )
+    {
+        clearTimers();
+        connected = false;
+    }
+    //set reconnect timer?
+    if ( !reconnect_timer )
+    {
+        reconnect_timer = window.setTimeout( "toggleConnection()", 1000 );
+    }
+}
+
+function toggleConnection()
+{
+    if ( connected )
+    {
+        clearTimers();
+        networkError();
+    }
+    else
+    {
+        clearTimers();
+        connected = true;
+        if ( reconnect_timer )
+        {
+            reconnect_timer = null;
+            did("conn").innerHTML="Connecting..";
+            did("conn").className="connoff";
+        }
+        else
+        {
+            did("conn").innerHTML="Connected";
+            did("conn").className="connon";
+        }
+        stimeout = window.setTimeout( "getSceneUpdates()", 500 );
+    }
+}
+
+function startVisualizer(robot, target)
+{
+    pageinit();
+    createRobot(robot, target);
+    toggleConnection();
+}
+
+//common response function for ajax calls where we dont need to do anything
+function onDoNothing(r){}
+
+function getTargetInfo(robot)
+{
+    execAjaxSimpleJson( "target.json", "", onResponse, networkError );
+    function onResponse(target)
+    {
+        startVisualizer( robot, target );
+    }
+}
+function getRobotInfo()
+{
+    execAjaxSimpleJson( "robot2.json", "", onResponse, networkError );
+    function onResponse(robot)
+    {
+        getTargetInfo( robot );
+    }
+}
+
+function getWorldInfo()
+{
+    execAjaxSimpleJson( glocation+"/env.json", "", onFetchedEnv, networkError );
+    function onFetchedEnv(j)
+    {
+        world = j;
+        getRobotInfo();
+    }
+}
+
+function sja( n,isl,ang) //set joint angle
+{
+    allobjects["LEG"+n][(isl?"obj_link":"obj_origin")].rotation.x = ang * d2r;
+}
+
+function setRobotHeight()
+{
+    //get min z-coord of front legs
+    //and min z-coord of rear legs
+    //try simple first
+    var p = new THREE.Vector3();
+    allobjects["LEGFLFOOT"].obj_origin.getWorldPosition( p );
+    var minz_front = p.z;
+    allobjects["LEGFRFOOT"].obj_origin.getWorldPosition( p );
+    if ( p.z < minz_front )
+        minz_front = p.z;
+
+    //console.log( minz_front );
+
+    allobjects["LEGBLFOOT"].obj_origin.getWorldPosition( p );
+    var minz_back = p.z;
+    allobjects["LEGBRFOOT"].obj_origin.getWorldPosition( p );
+    if ( p.z < minz_back )
+        minz_back = p.z;
+
+    var minz = minz_front;
+    if ( minz_back < minz )
+        minz = minz_back;
+    //console.log( "minz: " + minz );
+    if ( Math.abs(minz-5) > 1 )
+    {
+        var pos = allobjects["ROBOT_BASE"].obj_origin.position;
+        //console.log( "robot_base1: " + pos.z );
+        pos.z += (-minz + 5 );
+        console.log( "robot_base2: " + pos.z );
+    }
+}
+
+function getSceneUpdates()
+{
+    execAjaxSimpleJson( "getstatus", "", onResponse, networkError );
+    function onResponse(j)
+    {
+        if ( did("conn").innerHTML != "Connected" )
+        {
+            did("conn").innerHTML="Connected";
+            did("conn").className="connon";
+        }
+        if ( j.hasOwnProperty("status") && j["status"] )
+        {
+            var s = j["status"]["pos"];
+            var f = s.split("," );
+            sja( "FLROT", 1, f[4] );
+            sja( "FLHIP", 1, -f[5] );
+            sja( "FLKNEE", 0, f[6] );
+
+            sja( "BLROT", 1, f[7] );
+            sja( "BLHIP", 1, -f[8] );
+            sja( "BLKNEE", 0, f[9] );
+
+            sja( "FRROT", 1, f[10] );
+            sja( "FRHIP", 1, -f[11] );
+            sja( "FRKNEE", 0, f[12] );
+
+            sja( "BRROT", 1, f[13] );
+            sja( "BRHIP", 1, -f[14] );
+            sja( "BRKNEE", 0, f[15] );
+
+            if ( j["status"].hasOwnProperty( "evodogpos" ) )
+                processUpdates( j["status"]["evodogpos"] );
+            //setRobotHeight();
+        }
+
+        if (stimeout) { window.clearTimeout(stimeout); }
+        stimeout = window.setTimeout( "getSceneUpdates()", 300 );
+
+    }
+}
+</script>
+<script type='text/javascript' >
+
+//robot control
+function robotpower(on)
+{
+    var url = "robotpower?pwr="+(on?"on":"off");
+    execAjaxSimple( url, onDoNothing, networkError );
+}
+
+function reloadevoquadconfig()
+{
+    var url = "reloadevoquadconfig";
+    execAjaxSimple( url, onDoNothing, networkError );
+}
+
+function wheelc(turnval, speedval)
+{
+    var url = "wheelcontrol?spd="+speedval+"&turn="+turnval;
+    execAjaxSimple( url, onDoNothing, networkError );
+}
+
+var last_pub_val = 0;
+var stop_counter = 0;
+function startwheelmotion(turn_id, speed_id, pub_id)
+{
+    var turnval;
+    var speedval;
+    var pubval;
+    var turn;
+    var speed;
+    var pub;
+
+    turn = document.getElementById(turn_id);
+    turnval = (turn == null ? 0 : turn.value);
+
+    speed = document.getElementById(speed_id);
+    speedval = (speed == null ? 0 : speed.value);
+
+    pub = document.getElementById(pub_id);
+    pubval = (pub == null ? -1 : pub.value);
+
+    if(pubval == 1)
+    {
+        wheelc(-turnval, speedval); //-turnval because (+) turnval is turn_left in evoquad, but it is on the right side of the slider here
+
+        if (rptimeout) { window.clearTimeout(rptimeout); }
+        rptimeout = window.setTimeout( "startwheelmotion('slider_turn', 'slider_speed', 'publish_cmd')", 150 );
+        
+    }
+    else if(pubval == 0)
+    {
+        if(last_pub_val == 1 && pubval == 0)
+        {
+            turn.value = 0;
+            speed.value = 0;
+            mu_wheel_timeout = setInterval(function(){
+                wheelc(turn.value, speed.value);
+                stop_counter++;
+                if(stop_counter % 3 == 0)
+                {
+                    clearInterval( mu_wheel_timeout );
+                    mu_wheel_timeout = null;
+                }
+            }, 150 );
+        }
+                
+        if (rptimeout) { window.clearTimeout(rptimeout); }
+        rptimeout = window.setTimeout( "startwheelmotion('slider_turn', 'slider_speed', 'publish_cmd')", 500 );
+    }
+
+    last_pub_val = pubval;
+}
+
+//arm control
+function armpower(on)
+{
+    var url = "armpower?pwr="+(on?"on":"off");
+    execAjaxSimple( url ,onDoNothing, networkError );
+}
+
+//incremental commands only, not absolute
+//Testing 
+function button_armc(joint,val)
+{
+    if ( (joint == "sw" || joint == "sh" || joint=="el" || joint == "gr" || joint == "gv" || joint == "gh" || joint == "gg" ||
+          joint == "rr" || joint == "rh" ) && val != "" ) //Use !== for val if we want 0 as a valid value
+    {
+        var max_incr = (joint=="rr"||joint=="rh")? 50 : 20;
+        var t = button_motion_interval*2;
+        if ( val >= -max_incr && val <= max_incr ) //dont send a big increment
+        {
+            var url = "armcontrol?"+joint+"="+val+"&t="+t+"&incr=2"; //incremental
+            execAjaxSimple( url ,onDoNothing, networkError );
+        }
+    }
+}
+function armc(joint, val)
+{
+    if ( (joint == "sw" || joint == "sh" || joint=="el" || joint == "gr" || joint == "gv" || joint == "gh" || joint == "gg" ||
+          joint == "rr" || joint == "rh" ) && val != "" )
+    {
+        var max_incr = (joint=="rr"||joint=="rh")? 50 : 10;
+        if ( val >= -max_incr && val <= max_incr ) //dont send a big increment
+        {
+            var url = "armcontrol?"+joint+"="+val+"&t=300&incr=1"; //incremental
+            execAjaxSimple( url ,onDoNothing, networkError );
+        }
+    }
+}
+//incremental commands only, not absolute
+function gripc(joint, val)
+{
+    if ( (joint == "gr" || joint == "gv" || joint=="gh") && val != "" )
+    {
+        if ( val >= -10 && val <= 10 ) //dont send a big increment
+        {
+            var url = "grippercontrol?"+joint+"="+val+"&t=600&incr=1"; //incremental
+            execAjaxSimple( url ,onDoNothing, networkError );
+        }
+    }
+}
+
+function displayAngle(t,id,hid,xyz,neg)
+{
+    if(!t.hasOwnProperty(id))
+        return;
+    var e = t[id]["endpoint"];
+    var r = getRotation(e);
+    var ang =  (neg?-1:1)*Math.round(r[xyz],0);
+    did(hid).innerHTML = ang + "&deg;";
+}
+
+function pose2pos(p)
+{
+    var s="";
+    var t=getTranslation(p);
+    s = Math.round(t[0],1)+", "+Math.round(t[1],1)+", " + Math.round(t[2],1) + " mm";
+    return s;
+}
+
+function pose2ori(p)
+{
+    var s="";
+    var r=getRotation(p);
+    s = Math.round(r[0])+"&deg;, "+Math.round(r[1])+"&deg;, " + Math.round(r[2])+"&deg;";
+    return s;
+}
+function pose2str(p)
+{
+    var s= pose2pos(p) + " Ori: " + pose2ori(p);
+    return s;
+}
+function pose2xy(p)
+{
+    var s= "";
+    var t=getTranslation(p);
+    s = Math.round(t[0],1)+", "+Math.round(t[1],1)+" mm";
+    return s;
+}
+
+function displayUpdates(j)
+{
+    var t=j.transforms;
+    /*
+    displayAngle(t, "SWIVEL",   "sw",2,true);
+    displayAngle(t, "SHOULDER", "sh",0,true);
+    displayAngle(t, "ELBOW",    "el",0);
+    //displayAngle(t, "SHOULDER_IMU", "sh_imu",0,true);
+    //displayAngle(t, "ELBOW_IMU",    "el_imu",0);
+    displayAngle(t, "GROTATOR",   "gr",1);
+    displayAngle(t, "GVERTICAL",  "gv",0);
+    displayAngle(t, "GHORIZONTAL","gh",2,true);
+
+    displayAngle(t, "LEGFLUPPER", "flh",0,false);
+    displayAngle(t, "LEGFLLOWER", "flk",0,false);
+    displayAngle(t, "LEGFRUPPER", "frh",0,false);
+    displayAngle(t, "LEGFRLOWER", "frk",0,false);
+    displayAngle(t, "LEGBLUPPER", "blh",0,false);
+    displayAngle(t, "LEGBLLOWER", "blk",0,false);
+    displayAngle(t, "LEGBRUPPER", "brh",0,false);
+    displayAngle(t, "LEGBRLOWER", "brk",0,false);
+*/
+    //Have to fetch steering angles from j.status.body instead of j.poses since robot.json doesn't model the steering
+    //Because of that, poses cannot contain steering angles
+    var s = j.status;
+    if ( s.hasOwnProperty("body") && s["body"] )
+    {
+        var b = s.body;
+    }
+
+    var p = j.poses;
+    /*
+    did("robottoppos").innerHTML=pose2str(p["robottop_world"]);
+    did("swivelpos").innerHTML=pose2str(p["swivel_world"]);
+    did("camerapos").innerHTML=pose2str(p["camera_world"]);
+    did("elbowpos").innerHTML=pose2str(p["shoulder"]) + "|" + pose2str(p["shoulder_world"]);
+    did("elbowwristpos").innerHTML=pose2str(p["elbow"]) + "|" + pose2str(p["elbow_world"]);
+    did("grippos").innerHTML=pose2str(p["gripper"]);
+    did("griptippos").innerHTML=pose2str(p["grippertip"]) + "|" + pose2str(p["grippertip_world"] );
+    did("robotpos").innerHTML=pose2pos( t["ROBOT_BASE"]["origin"] );
+    did("robotori").innerHTML=pose2ori( t["ROBOT_BASE"]["origin"] );
+    did("fl").innerHTML=pose2xy(p["legs"]["front_left"] );
+    did("fr").innerHTML=pose2xy(p["legs"]["front_right"] );
+    did("bl").innerHTML=pose2xy(p["legs"]["back_left"] );
+    did("br").innerHTML=pose2xy(p["legs"]["back_right"] );
+    */
+}
+
+function deleteobj(id)
+{
+    var url = "deleteobj?id="+id; //numerical object/marker id
+    execAjaxSimpleJson( url, "", onResp, networkError );
+    function onResp(r)
+    {
+        window.setTimeout("removeObject('TARGET-"+id+"')", 100 );
+    }
+}
+
+
+function setobjinfo(id)
+{
+    var params = {};
+    params["tag"] = did("tagval").value;
+    params["rr"] = did("ori_x").value;
+    params["rp"] = did("ori_y").value;
+    params["ry"] = did("ori_z").value;
+    params["offset"] = did("offsetval").value;
+    var url = "setobjinfo?id="+id; //numerical object/marker id
+    execAjaxSimplePost( url, params, onDoNothing, networkError );
+}
+
+var lock_viewfromcamera = false;
+function viewFromCamera()
+{
+    var from=new THREE.Vector3;
+    var to=new THREE.Vector3;
+    allobjects["CAMERA_OPTICAL"].obj_origin.getWorldPosition(from);
+    allobjects["CAMERA_VIEWPOINT"].obj_origin.getWorldPosition(to);
+    setCameraFromTo( from, to );
+}
+function floor3d()
+{
+    if ( !floor_plane.material.displacementMap )
+    {
+        floor_plane.material.displacementMap = floor_displacement_texture;
+        console.log( "set" );
+    }
+    else
+    {
+        floor_plane.material.displacementMap = null;
+        console.log( "unset" );
+    }
+    floor_plane.material.needsUpdate = true;
+}
+function topview()
+{
+    var from=new THREE.Vector3;
+    from.x = 0;
+    from.y = 0;
+    from.z = onemeter*6;
+    var to=new THREE.Vector3;
+    to.x = 0;
+    to.y = 0;
+    to.z = 0;
+    setCameraFromTo( from, to );
+}
+function gview(id)
+{
+    lock_viewfromcamera = false;
+    id="TARGET-"+id;
+    setCameraViewNear( allobjects[id].obj_origin.position );
+}
+
+
+function arrayround(a,suffix)
+{
+    if (!suffix) suffix = "";
+    var b=[];
+    for(var i=0;i<a.length;i++)
+        b.push(Math.round(a[i])+suffix);
+    return b;
+}
+function arrayEqual(a1,a2)
+{
+    if ( a1.length != a2.length )
+        return false;
+    for(var i=0; i < a1.length; i++)
+        if( a1[i] != a2[i] )
+            return false;
+    return true;
+}
+var g_object_ids=[];
+function popObjects(objs,new_ids)
+{   //only update entire table if the new array is not same as old array
+    //else update only the arm-offset positions
+    if ( pauseobjs )
+        return;
+
+    if (arrayEqual(new_ids, g_object_ids))
+    {
+        for(var i=0;i<new_ids.length;i++)
+        {
+            var o = objs[new_ids[i]];
+            var oid = new_ids[i].substr(7);
+            //var armo = arrayround(o.armrelpos["t"]);
+            var gropos = arrayround(o.grrelpose["t"]);
+            var grorot = arrayround(o.grrelpose["r"]);
+            var roboto = arrayround(o.robotrelpos["t"]);
+            var opos = arrayround(o.origin["t"]);
+            var orot = Math.round(o["yaw"]);//arrayround(o.origin["r"], "&#176;");
+            //var orot = arrayround(o.origin["r"], "&#176;");
+            var osh = Math.round(o["sh"]);
+            //did("armo-"+oid).innerHTML=armo;
+            did("gropos-"+oid).innerHTML=gropos;
+            did("grorot-"+oid).innerHTML=grorot;
+            did("roboto-"+oid).innerHTML=roboto;
+            did("opos-"+oid).innerHTML=opos;
+            did("orot-"+oid).innerHTML=orot;
+            did("osh-"+oid).innerHTML=osh;
+        }
+        return;
+    }
+    //var h = "<table><tr><th>ID</th><th>Name</th><th>Pos</th><th style='max-width:30px'>Surf Height</th><th>Ori</th><th style='max-width:30px'>Arm Rel Pos</th><th style='max-width:30px'>Gr Rel Pos</th><th style='max-width:30px'>Gr Rel Ori</th><th></th><th>Surface</th></tr>"; //write out new list as html table
+    var h = "<table><tr><th>ID</th><th>Name</th><th>Pos</th><th style='max-width:30px'>Surf Height</th><th>Ori</th>";
+    //if ( show_grrelpos )
+        h += "<th style='max-width:30px'>Gr Rel Pos</th>";
+    //if ( show_grrelori )
+        h += "<th style='max-width:30px'>Gr Rel Ori</th>";
+    //if ( did("robotrelpos").checked )
+        h += "<th style='max-width:30px'>Robot Rel Pos</th>";
+    h += "<th></th><th>Surface</th></tr>"; 
+    for(var i=0;i<new_ids.length;i++)
+    {
+        var o = objs[new_ids[i]];
+        var oid = new_ids[i].substr(7);
+        //var armo = arrayround(o.armrelpos["t"]);
+        var gropos = arrayround(o.grrelpose["t"]);
+        var grorot = arrayround(o.grrelpose["r"]);
+        var roboto = arrayround(o.robotrelpos["t"]);
+        var opos = arrayround(o.origin["t"]);
+        var orot = Math.round(o["yaw"]);//arrayround(o.origin["r"],"&#176;");
+        //var orot = arrayround(o.origin["r"],"&#176;");
+        h += "<tr><td>"+oid+"</td><td onclick='objdlg(\""+oid+"\")'>"+o.name
+            +"</td><td><button onclick='gview(\""+oid+"\")' id='opos-"+oid+"' style='min-width:70px;'>"+opos+"</button>"
+            +"</td><td id='osh-"+oid+"' style='min-width:20px;'>"+Math.round(o["sh"])
+            +"</td><td id='orot-"+oid+"' style='min-width:20px;'>"+orot;
+            //+"</td><td id='armo-"+oid+"' style='min-width:20px;'>"+armo;
+        //if ( show_grrelpos )
+            h += "</td><td id='gropos-"+oid+"' style='min-width:20px;'>"+gropos;
+        //if ( show_grrelori )
+            h += "</td><td id='grorot-"+oid+"' style='min-width:20px;'>"+grorot;
+        //if ( did("robotrelpos").checked )
+        h += "</td><td id='roboto-"+oid+"' style='min-width:20px;'>"+roboto;
+        h += "</td><td><button onclick='deleteobj("+oid+")'>Delete</button>"
+            +"</td><td>"+(o["sid"]>0?allobjects["SURFACE-"+o["sid"]].name:"None")
+            +"</td></tr>";
+    }
+    h += "</table>";
+    did("objs").innerHTML = h;
+    g_object_ids = new_ids;//this is whats currently displayed now
+}
+
+
+</script>
+</head>
+<body onload="getWorldInfo()" >
+  <div id='conn' class='connoff' onclick="toggleConnection()" >Disconnected</div>
+  <div style="display:inline-block;vertical-align:top; position:relative;width:100%;min-height:20px">
+    <div id="section-map">
+      <div style="height:90vh;width:90vh;vertical-align:top;border:1px solid gray" id="three"></div>
+      <button onclick="resetCameraPos()" >View Robot</button>
+      <button onclick="viewFromCamera()" >From Camera</button>
+    </div>
+    </div>
+    <br/>
+    <br/>
+    <br/>
+    <div class='errmsg' id='errmsg'></div>
+
+</body>
+</html>

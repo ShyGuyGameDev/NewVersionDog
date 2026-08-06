@@ -1,0 +1,16 @@
+[Unit]
+Description=rosmaster
+Requires=network-online.target
+After=network.target sysinit.target network-online.target
+
+[Service]
+ExecStart=/home/pi/system/runpi.sh
+WorkingDirectory=/home/pi/system
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=default.target
+

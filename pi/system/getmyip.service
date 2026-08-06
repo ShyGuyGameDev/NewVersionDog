@@ -1,0 +1,17 @@
+[Unit]
+Description=getmyip
+Requires=network-online.target rosmasterpi
+After=network.target sysinit.target network-online.target rosmasterpi
+
+[Service]
+ExecStart=/home/pi/system/rungetmyip.sh
+WorkingDirectory=/home/pi/system
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=3
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,89 @@
+{
+    "board_dist": 200.09,
+    "peg_dist": 34.93,
+    "peg_height": 76.2,
+    "grasp_height": 90,
+    "pick_height_offset" : -12,
+    "pick_gripper_angle": 30,
+    "release_gripper_angle": 34,
+    "raise_height": 130,
+    "drop_height": 110,
+    "tray_peg_height" : 80,
+    "tray_dist": 75.03,
+    "tray_peg_dist": 22,
+    "tray_side": "right",
+    "tray_pick_height_offset" : -5,
+    "tray_drop_height_offset" : 10,
+    "tray_pick_gripper_angle": 30,
+    "tray_release_gripper_angle": 36,
+    "drop_height_offset" : 3,
+    "threshold_window_size": 51,
+    "positions":
+    {
+        "lookatboard":
+        {
+            "command": "s:1.0,a:82,b:91.16,c:150,d:90,e:41.59,f:90",
+            "delay": 1.0
+        },
+        "beforelookatboard":
+        {
+            "command": "s:1.0,a:90,b:138.36,c:132,d:90,e:10,f:70",
+            "delay": 1.5
+        },
+        "beforelookatboardmid":
+        {
+            "command": "s:0.7,a:85,b:138.36,c:132,d:90,e:10,f:70",
+            "delay": 0.25
+        },
+        "grasp":
+        {
+            "command": "s:1.0,f:40",
+            "delay": 1.0
+        },
+        "release":
+        {
+            "command": "s:1.5,f:70",
+            "delay": 1.0
+        },
+        "raise_if_low":
+        {
+            "command": "s:1.0,f:70,y:+20",
+            "delay": 1.0
+        },
+        "before_pick_gripper_slightly_close":
+        {
+            "command": "f:70",
+            "delay": 0.5
+        }
+    },
+    "sequences":
+    {
+        "iwon":
+        [
+            {
+                "position": "beforelookatboardmid",
+                "delay": 1.0
+            },
+            {
+                "command": "s:3.0,e:170",
+                "delay": 1.0
+            },
+            {
+                "command": "d:-20",
+                "delay": 1.0
+            },
+            {
+                "command": "d:+40",
+                "delay": 1.0
+            },
+            {
+                "command": "s:2.0,e:10",
+                "delay": 1.5
+            },
+            {
+                "position": "beforelookatboardmid",
+                "delay": 1.0
+            }
+        ]
+    }
+}

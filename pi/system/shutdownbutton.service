@@ -1,0 +1,15 @@
+[Unit]
+Description=shutdownbutton
+
+[Service]
+ExecStart=/usr/bin/python /home/pi/system/shutdownbutton.py
+WorkingDirectory=/home/pi/system
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=2
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+

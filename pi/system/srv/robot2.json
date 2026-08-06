@@ -1,0 +1,610 @@
+{
+    "size":
+    {
+        "comment": "Outer bounds of frame without shell, height to top of frame",
+        "width":  13.0,
+        "length": 23.25,
+        "height": 21,
+        "unit": "in"
+    },
+    "objects":
+    {
+        "ROBOT_BASE":
+        {
+            "parent_id": "WORLD",
+            "name": "RobotBase",
+            "showname": true,
+            "showaxis": true
+        },
+
+        "ROBOT_BASE_XRIGHT":
+        {
+            "parent_id": "ROBOT_BASE",
+            "name": "RobotBaseXRight",
+            "origin":
+            {
+                "rotation":    [0,0,-90]
+            }
+        },
+
+        "ROBOT_TOP":
+        {
+            "parent_id": "ROBOT_BASE_XRIGHT",
+            "name": "RobotTop",
+            "showname": true,
+            "origin":
+            {
+                "translation": [0,0,225.327,"mm"],
+		        "comment": "max height of straight legs.",
+                "shape_commented":{"type":"box","xwidth":"18in","yheight":"28in","zdepth":"6in","color":"white"},
+                "showaxis":true
+            }
+        },
+
+        "BATTERY":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "Battery",
+            "showname": false,
+            "origin":
+            {
+                "translation": [0,0,-50,"mm"],
+                "shape":{"type":"box",
+                         "xwidth":"4in","yheight":"2in",
+                         "zdepth":"0.75in",
+                         "color":"blue",
+                         "opacity":0.5
+                        },
+                "showaxis_commented":true
+            }
+            ,"cog":
+            {
+                "translation":  [0, 0, 0, "mm"],
+                "weight" : 100,
+                "show" : false,
+                "showname": true
+            }
+        },
+        "FRAME_LEFT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameLeft",
+            "origin":
+            {
+                "translation": [-67.5, -120, 0, "mm"],
+                "rotation": [0,0,90]
+            },
+            "endpoint":
+            {
+                "translation":  [200.0, 0, 0, "mm"],
+                "shape": "frame"
+            }
+        },
+
+        "FRAME_RIGHT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameRight",
+            "origin":
+            {
+                "translation": [65, -120, 0, "mm"],
+                "rotation": [0,0,90]
+            },
+            "endpoint":
+            {
+                "translation":  [200, 0, 0, "mm"],
+                "shape": "frame"
+            }
+        },
+
+        "FRAME_FRONT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameFront",
+            "origin":
+            {
+                "translation": [-65, 120, 0, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [130,0,0, "mm"],
+                "shape": "frame"
+            }
+        },
+
+        "FRAME_BACK":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameBack",
+            "origin":
+            {
+                "translation": [-60, -120, 0, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [120,0,0, "mm"],
+                "shape": "frame"
+            }
+        },
+
+        "FRAME_FRONT_UP_LEFT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameFrontUpLeft",
+            "origin":
+            {
+                "translation": [-60, 120, 0, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [60,0,50, "mm"],
+                "shape": "frame"
+            }
+        },
+
+
+        "FRAME_FRONT_UP_RIGHT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameFrontUpRight",
+            "origin":
+            {
+                "translation": [60, 120, 0, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [-60,0,50, "mm"],
+                "shape": "frame"
+            }
+        },
+
+
+        "FRAME_BACK_UP_LEFT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameBackUpLeft",
+            "origin":
+            {
+                "translation": [-60, -120, 0, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [60,0,50, "mm"],
+                "shape": "frame"
+            }
+        },
+
+
+        "FRAME_BACK_UP_RIGHT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameBackUpRight",
+            "origin":
+            {
+                "translation": [60, -120, 0, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [-60,0,50, "mm"],
+                "shape": "frame"
+            }
+        },
+
+
+        "FRAME_MID_UP_LEFT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameMidUpLeft",
+            "origin":
+            {
+                "translation": [-60, 0, 0, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [60,0,50, "mm"],
+                "shape": "frame"
+            }
+        },
+
+
+        "FRAME_MID_UP_RIGHT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameMidUpRight",
+            "origin":
+            {
+                "translation": [60, 0, 0, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [-60,0,50, "mm"],
+                "shape": "frame"
+            }
+        },
+        "FRAME_TOP":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "FrameTop",
+            "origin":
+            {
+                "translation": [0, 120, 50, "mm"]
+            },
+            "endpoint":
+            {
+                "translation":  [0,-240,0, "mm"],
+                "shape": "frame"
+            }
+        },
+
+        "LEGFLROT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "LegFLRot",
+            "origin":
+            {
+                "translation": [-43, 110.9, 0, "mm"], 
+                "rotation":   [0,-90,90]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 0, 31.15, "mm"],
+                "comment": "set xcoord here for rot angle",
+                "rotation":[0,0,0],
+                "shape":"cylinder1in"
+                ,"showaxis-commented": true
+            }
+            ,"cog":
+            {
+                "translation":  [0, 15, 0, "mm"],
+                "weight" : 60
+                ,"show" : true
+            }
+        },
+
+        "LEGFLHIP":
+        {
+            "parent_id": "LEGFLROT",
+            "name": "LegFLHip",
+            "origin":
+            {
+                "translation": [0, 0, 0, "mm"],
+                "rotation":   [0,90,0]
+                ,"showaxis-comment": true
+            },
+            "endpoint":
+            {
+                "translation":  [0, 100, 0, "mm"],
+                "comment":"set x ang here for hip joint",
+                "rotation":[0,0,0],
+                "shape":"cylinder1in"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 85, 0, "mm"],
+                "weight" : 75
+                ,"show" : true
+            }
+        },
+        "LEGFLKNEE":
+        {
+            "parent_id": "LEGFLHIP",
+            "name": "LegFLKnee",
+            "origin":
+            {
+                "rotation":   [0,180,0]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 125.327, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinder3qin"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 50, 0, "mm"],
+                "weight" : 17
+                ,"show" : true
+            }
+        },
+
+        "LEGFLFOOT":
+        {
+            "parent_id": "LEGFLKNEE",
+            "name": "LegFLFoot",
+            "origin":
+            {
+                "translation": [ 8,0,0,"mm"],
+                "rotation":   [90,0,0]
+            },
+            "endpoint":
+            {
+                "translation":  [-16, 0, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinderhalfin"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 0, 0, "mm"],
+                "weight" : 3
+                ,"show" : true
+            }
+        },
+
+        "LEGBLROT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "LegBLRot",
+            "origin":
+            {
+                "translation": [-43, -110.9, 0, "mm"],
+                "rotation":   [0,-90,90]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 0, 31.5, "mm"],
+                "comment": "set xcoord here for rot angle",
+                "rotation":[0,0,0],
+                "shape":"cylinder1in"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 15, 0, "mm"],
+                "weight" : 60
+                ,"show" : true
+            }
+        },
+
+        "LEGBLHIP":
+        {
+            "parent_id": "LEGBLROT",
+            "name": "LegBLHip",
+            "origin":
+            {
+                "translation": [0, 0, 0, "mm"],
+                "rotation":   [0,90,0]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 100, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinder1in"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 85, 0, "mm"],
+                "weight" : 75
+                ,"show" : true
+            }
+        },
+
+        "LEGBLKNEE":
+        {
+            "parent_id": "LEGBLHIP",
+            "name": "LegBLKnee",
+            "origin":
+            {
+                "rotation":   [0,180,0]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 125.327, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinder3qin"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 50, 0, "mm"],
+                "weight" : 17
+                ,"show" : true
+            }
+        },
+
+        "LEGBLFOOT":
+        {
+            "parent_id": "LEGBLKNEE",
+            "name": "LegBLFoot",
+            "origin":
+            {
+                "translation": [ 8,0,0,"mm"],
+                "rotation":   [90,0,0]
+            },
+            "endpoint":
+            {
+                "translation":  [-16, 0, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinderhalfin"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 0, 0, "mm"],
+                "weight" : 3
+                ,"show" : true
+            }
+        },
+
+        "LEGFRROT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "LegFRRot",
+            "origin":
+            {
+                "translation": [43, 110.9, 0, "mm"],
+                "rotation":   [0,-90,90]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 0, -31.5, "mm"],
+                "comment": "set xcoord here for rot angle",
+                "rotation":[0,0,0],
+                "shape":"cylinder1in"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 15, 0, "mm"],
+                "weight" : 60
+                ,"show" : true
+            }
+        },
+
+        "LEGFRHIP":
+        {
+            "parent_id": "LEGFRROT",
+            "name": "LegFRHip",
+            "origin":
+            {
+                "translation": [0, 0, 0, "mm"],
+                "rotation":   [0,90,0]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 100, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinder1in"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 85, 0, "mm"],
+                "weight" : 75
+                ,"show" : true
+            }
+        },
+
+        "LEGFRKNEE":
+        {
+            "parent_id": "LEGFRHIP",
+            "name": "LegFRKnee",
+            "origin":
+            {
+                "rotation":   [0,180,0]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 125.327, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinder3qin"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 50, 0, "mm"],
+                "weight" : 17
+                ,"show" : true
+            }
+        },
+
+
+        "LEGFRFOOT":
+        {
+            "parent_id": "LEGFRKNEE",
+            "name": "LegFRFoot",
+            "origin":
+            {
+                "translation": [ 8,0,0,"mm"],
+                "rotation":   [90,0,0]
+            },
+            "endpoint":
+            {
+                "translation":  [-16, 0, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinderhalfin"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 0, 0, "mm"],
+                "weight" : 3
+                ,"show" : true
+            }
+        },
+
+        "LEGBRROT":
+        {
+            "parent_id": "ROBOT_TOP",
+            "name": "LegBRRot",
+            "origin":
+            {
+                "translation": [43, -110.9, 0, "mm"],
+                "rotation":   [0,-90,90]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 0, -31.5, "mm"],
+                "comment": "set xcoord here for rot angle",
+                "rotation":[0,0,0],
+                "shape":"cylinder1in"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 15, 0, "mm"],
+                "weight" : 60
+                ,"show" : true
+            }
+        },
+
+        "LEGBRHIP":
+        {
+            "parent_id": "LEGBRROT",
+            "name": "LegBRHip",
+            "origin":
+            {
+                "translation": [0, 0, 0, "mm"],
+                "rotation":   [0,90,0]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 100, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinder1in"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 85, 0, "mm"],
+                "weight" : 75
+                ,"show" : true
+            }
+        },
+
+        "LEGBRKNEE":
+        {
+            "parent_id": "LEGBRHIP",
+            "name": "LegBRKnee",
+            "origin":
+            {
+                "rotation": [0,180,0]
+            },
+            "endpoint":
+            {
+                "translation":  [0, 125.327, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinder3qin"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 50, 0, "mm"],
+                "weight" : 17
+                ,"show" : true
+            }
+        },
+        "LEGBRFOOT":
+        {
+            "parent_id": "LEGBRKNEE",
+            "name": "LegBRFoot",
+            "origin":
+            {
+                "translation": [ 8,0,0,"mm"],
+                "rotation":   [90,0,0]
+            },
+            "endpoint":
+            {
+                "translation":  [-16, 0, 0, "mm"],
+                "rotation":[0,0,0],
+                "shape":"cylinderhalfin"
+            }
+            ,"cog":
+            {
+                "translation":  [0, 0, 0, "mm"],
+                "weight" : 3
+                ,"show" : true
+            }
+        }
+
+    }
+}

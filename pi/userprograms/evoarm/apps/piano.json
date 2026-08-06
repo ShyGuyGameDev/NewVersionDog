@@ -1,0 +1,1 @@
+{"sequence":[{"command":"pianoraise","delay":"1.0","speed":"1.0","type":"posname"},{"command":"presskey1","delay":"0.5","speed":"1.0","type":"posname"},{"command":"pianoraise","delay":"0.2","speed":"1.0","type":"posname"},{"command":"presskey2","delay":"0.5","speed":"1.0","type":"posname"},{"command":"pianoraise","delay":"0.5","speed":"1.0","type":"posname"}]}

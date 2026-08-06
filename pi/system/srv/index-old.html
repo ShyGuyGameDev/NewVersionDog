@@ -1,0 +1,4309 @@
+<!-- 
+ * Copyright (C) 2020 onwards
+ * Evodyne Robotics Corporation / Evodyne Robotics Academy
+ * support@evodyneacademy.com
+ * Can not be copied and/or distributed under any
+ * circumstances, directly or
+ * indirectly, verbatim or modified or derived or inspired
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width">
+    <link rel="icon" href="data:,">
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+            overflow-x: hidden;
+        }
+
+        #view {
+            align-items: center;
+        }
+
+        .sysapps {
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .sysapps>div {
+            border: 1px solid gray;
+            border-radius: 6px;
+            width: 50px;
+            height: 50px;
+            box-shadow: 2px 2px #dddddd;
+            background-color: black;
+            text-align: center;
+        }
+
+        .sysapps>div>img {
+            width: 46px;
+        }
+
+        .sysapps>div>div {
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .btn {
+            color: black;
+            font-size: 16pt;
+            background-color: orange;
+            border-radius: 30px;
+            padding: 15px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            text-align:center;
+        }
+
+        .btn:hover {
+            color: white;
+        }
+
+        .btn:active {
+            background-color: darkorange;
+        }
+
+        .right-edge {
+            border-top-right-radius:0px;
+            border-bottom-right-radius:0px;
+        }
+        .left-edge {
+            border-top-left-radius:0px;
+            border-bottom-left-radius:0px;
+        }
+        .top-edge {
+            border-top-right-radius:0px;
+            border-top-left-radius:0px;
+        }
+        .bot-edge {
+            border-bottom-right-radius:0px;
+            border-bottom-left-radius:0px;
+        }
+
+        .bbtn {
+            color: black;
+            font-size: 16pt;
+            background-color: orange;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .bbtn:hover {
+            color: white;
+        }
+
+        .bbtn:active {
+            background-color: darkorange;
+        }
+
+        .lbtn {
+            color: black;
+            font-size: 16pt;
+            background-color: orange;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .lbtn:hover {
+            color: white;
+        }
+        
+        .lbtn:active {
+            background-color: darkorange;
+        }
+        
+        .lbtn div {
+            position: absolute;
+            bottom: 2px;
+            text-align: center;
+            font-size: 9px;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+        
+        .rbtn {
+            margin: 5px;
+            text-align: center;
+        }
+        /*** PURE JS JOYSTICK ***/
+        
+        html {
+            border: 0;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: arial;
+            font-size: 12px;
+        }
+        
+        #main {
+            align-items: center;
+            display: flex;
+            height: 50vh;
+            justify-content: center;
+            margin: auto;
+            width: 50vh;
+        }
+        
+        #wrapper {
+            border: 1px solid black;
+            width: 50vh;
+            height: 50vh;
+            border-radius: 10%;
+        }
+        
+        .joystick {
+            cursor: pointer;
+            height: 50%;
+            user-select: none;
+            width: 50%;
+            user-select: none;
+            /* supported by Chrome and Opera */
+            -webkit-user-select: none;
+            /* Safari */
+            -khtml-user-select: none;
+            /* Konqueror HTML */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+        }
+        
+        .note {
+            display: block;
+            text-align: center !important;
+            margin: auto;
+        }
+        
+        #arm-key {
+            padding: 10px;
+            width: 200px;
+            margin: auto;
+            width: none;
+            margin-top: 10px;
+        }
+        
+        #arrow-keys {
+            padding: 10px;
+            width: 200px;
+            margin: auto;
+            width: none;
+            margin-top: 10px;
+        }
+        
+        #arm-keys {
+            width: 100%;
+            display: flex;
+            text-align: center;
+            justify-content: center;
+        }
+        
+        .key-layer {
+            padding: none;
+            justify-content: center;
+            text-align: center;
+            margin: auto;
+            margin-bottom: 5px;
+            height: 50px;
+            display: flex;
+            width: 100%;
+        }
+        
+        .arrow-div {
+            user-select: none;
+            line-height: 30px;
+            margin: 5px;
+            font-size: 20px;
+            color: black;
+            margin-top: 0px;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            padding: 5px;
+            border: none;
+            border-left: 1px solid #cccccc55;
+            border-right: 1px solid #cccccc55;
+            background-color: #ccc;
+            border-radius: 4px;
+            box-shadow: 0px -2px 5px inset #222, 0px 5px 1px 3px #444;
+            transition: all 0.1s;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        
+        @media only screen and (max-width: 768px) {
+            .arrow-div {
+                width: 45px !important;
+                height: 45px !important;
+            }
+        }
+        
+        .arrow-div:active {
+            border-left: 1px solid #888;
+            border-right: 1px solid #888;
+            background-color: #aaa;
+            box-shadow: 0px -2px 5px inset #222, 0px 2px 1px 2px #444;
+            margin-top: 5px;
+            transition: all 0.1s;
+        }
+        
+        .dark-arrow-div {
+            border-left: 1px solid #888;
+            border-right: 1px solid #888;
+            background-color: #aaa;
+            box-shadow: 0px -2px 5px inset #222, 0px 2px 1px 2px #444;
+            margin-top: 5px;
+            transition: all 0.1s;
+        }
+        
+        .tab {
+            /* border-left:1px solid gray; */
+            /* border-right: 1px solid gray; */
+            /* border-bottom: 1px solid gray; */
+            /* border-top:1px solid gray; */
+            height: 20px;
+            text-align: center;
+            font-size: 18px;
+            border-radius: 5px 5px 0px 0px;
+        }
+        
+        .controltab {
+            /* border-left:1px solid gray; */
+            /* border-right: 1px solid gray; */
+            /* border-bottom: 1px solid gray; */
+            /* border-top:1px solid gray; */
+            height: 20px;
+            text-align: center;
+            font-size: 24px;
+            border-radius: 5px 5px 0px 0px;
+        }
+        
+        .sel {
+            color: white;
+            background-color: orange;
+            /* border-top:1px solid gray; */
+            border-bottom: 0px;
+        }
+        
+        #arm {
+            height: 95%;
+        }
+        
+        .armdiv {
+            width: 95vw;
+            //height: 90vh;
+            //display: flex;
+            //flex-wrap: no-wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .armdiv table {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .ped-background {
+            opacity: 0.5;
+            position: absolute;
+            left: 50%;
+            margin-left: -105px;
+            top: 50%;
+            margin-top: -133px;
+            width: 200px;
+            height: 200px;
+            background-image: url(ped-top-view.png);
+            background-repeat: no-repeat;
+            background-size: contain;
+            z-index: -1;
+            background-position: center;
+        }
+        
+        .sicol {
+            font-size: 26px;
+            color: darkgray;
+            position: absolute;
+            top: -24px;
+            left: 10px;
+        }
+        
+        .sicor {
+            font-size: 26px;
+            color: darkgray;
+            position: absolute;
+            top: -24px;
+            right: -10px;
+        }
+        
+        .flipx {
+            -webkit-transform: scaleX(-1);
+            transform: scaleX(-1);
+        }
+        
+        .flipy {
+            -webkit-transform: scaleY(-1);
+            transform: scaleY(-1);
+        }
+        
+        .flipxy {
+            -webkit-transform: scaleY(-1) scaleX(-1);
+            transform: scaleY(-1) scaleX(-1);
+        }
+        
+        .sliderrange {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 20vw;
+            height: 5px;
+            background-color: lightgray;
+            margin: 10px 0px;
+            border-radius: 100px;
+            user-select: none;
+            /* supported by Chrome and Opera */
+            -webkit-user-select: none;
+            /* Safari */
+            -khtml-user-select: none;
+            /* Konqueror HTML */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+        }
+        
+        .sliders {
+            display: block;
+            //margin-top: 100px;
+            user-select: none;
+            /* supported by Chrome and Opera */
+            -webkit-user-select: none;
+            /* Safari */
+            -khtml-user-select: none;
+            /* Konqueror HTML */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+        }
+        
+        .slider {
+            font-size: 20px;
+            //display: flex;
+            flex-wrap: wrap;
+            margin: calc(100vh/10) 0px;
+            position: relative;
+            user-select: none;
+            /* supported by Chrome and Opera */
+            -webkit-user-select: none;
+            /* Safari */
+            -khtml-user-select: none;
+            /* Konqueror HTML */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+        }
+        
+        .sliderbutton {
+            background-color: orange;
+            border: 3px solid black;
+            width: 40px;
+            height: 40px;
+            border-radius: 100px;
+            text-align: center;
+            line-height: 36px;
+            vertical-align: middle;
+            user-select: none;
+            /* supported by Chrome and Opera */
+            -webkit-user-select: none;
+            /* Safari */
+            -khtml-user-select: none;
+            /* Konqueror HTML */
+            -moz-user-select: none;
+            /* Firefox */
+            -ms-user-select: none;
+            /* Internet Explorer/Edge */
+        }
+        
+        .sequences {
+            width: calc(100% - 10px);
+            max-width: calc(100% - 10px);
+            border-collapse: collapse;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .sequences tr td {
+            border: 1px dotted lightgray;
+            padding: 5px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+        }
+        
+        .sequences th {
+            border: 1px dotted lightgray;
+            background-color: #eeeeee;
+            padding: 5px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            font-weight: normal;
+            font-size: 80%;
+        }
+        
+        .sequence {
+            width: calc(100% - 20px);
+            border-collapse: collapse;
+            margin: 10px;
+        }
+        
+        .sequence tr td {
+            border: 1px dotted lightgray;
+            padding: 10px;
+        }
+        
+        .cambtn {
+            padding: 5px;
+            border: 2px solid black;
+            border-radius: 50%;
+            background-color: orange;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        
+        .cambtn img {
+            width: 15px;
+            margin: 2px;
+        }
+        
+        .ttbtn {
+            padding: 5px;
+            border: 2px solid black;
+            border-radius: 50%;
+            background-color: orange;
+            width: 18px;
+            height: 18px;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+            font-weight: bold;
+            line-height: 18px;
+            color: black;
+        }
+        
+        .ttbtn img {
+            width: 15px;
+            margin: 3px;
+        }
+        
+        .ttbtn:active {
+            background-color: darkorange;
+        }
+        
+        .tbtn {
+            padding: 10px;
+            border: 2px solid black;
+            border-radius: 50%;
+            background-color: orange;
+            width: 26px;
+            height: 26px;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        
+        .tbtn img {
+            width: 18px;
+            margin: 4px;
+        }
+        
+        .tbtn:active {
+            background-color: darkorange;
+        }
+        
+        .sbtn {
+            width: 40px;
+            text-align: center;
+            cursor: pointer;
+        }
+        
+        .sbtn img {
+            height: 20px;
+        }
+        
+        .pbtn {
+            text-align: center;
+            font-size: 12px;
+            border-radius: 5px;
+            background-color: lightgray;
+            border-right: 1px solid darkgray;
+            border-bottom: 1px solid darkgray;
+            padding: 5px;
+            cursor: pointer;
+        }
+        
+        .trhr td {
+            background-color: orange;
+            height: 5px;
+        }
+        
+        .dlg {
+            top: 0px;
+            left: 0px;
+            position: fixed;
+            min-height: calc( 100% - 20px);
+            background-color: white;
+            width: calc(10vw - 2px);
+            max-width: calc(100% - 2px);
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        .position {
+            width: calc( 100% - 10px);
+            font-size: 18px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            text-align: center;
+            padding: 5px;
+            padding-top: 50px;
+            background-color: white;
+            min-height: calc( 100% - 10px);
+            z-index: 1;
+        }
+        
+        .position table {
+            width: calc(100% - 10px);
+            margin: 5px;
+        }
+        
+        .position td {
+            height: 20px;
+            padding: 5px;
+            border: 1px dotted lightgray;
+        }
+        
+        .position tr td:first-of-type {
+            padding-left: 10px;
+            text-align: left;
+        }
+        
+        .poscontrolforapp td div {
+            display: inline-block;
+        }
+        
+        .positions {
+            width: calc( 100% - 10px);
+            font-size: 20px;
+        }
+        
+        .positions table {
+            width: calc( 100%);
+            border-collapse: collapse;
+            margin: 5px;
+            border-radius: 10px;
+        }
+        
+        .cmdstr {
+            font-size: 10px;
+            font-family: arial;
+            color: #555555;
+            border: 1px solid lightgray;
+            border-radius: 3px;
+            background-color: #eeeeee;
+            box-shadow: -1px 1px 2px gray;
+            min-height: 10px;
+        }
+        
+        .lines td {
+            font-size: 12px;
+        }
+        
+        .unit {
+            color: gray;
+            font-size: 10px;
+        }
+        
+        .newline {
+            z-index: 2;
+            top: 0px;
+            left: 0px;
+            position: fixed;
+            height: calc( 100% - 60px);
+            background-color: white;
+            width: calc(100% - 2px);
+            max-width: calc(100% - 2px);
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        .newline div:first-of-type {
+            display: inline-block;
+            border: 1px solid orange;
+            border-radius: 10px;
+        }
+        
+        .newline table {
+            margin-left: auto;
+            margin-right: auto;
+            border-collapse: collapse;
+        }
+        
+        .newline td {
+            font-size: 20px;
+            padding: 10px;
+            /* padding-left:50px;
+    padding-right:50px; */
+            border-top: 1px dotted gray;
+        }
+
+        .newline th {
+            font-size: 20px;
+            padding: 10px;
+            /* padding-left:50px;
+    padding-right:50px;
+    border:1px dotted gray; */
+            font-weight: bold;
+        }
+
+        .insertbtn {
+            background-color: lightgray;
+            color: black;
+            font-size: 10px;
+            border-radius: 50%;
+            height: 15px;
+            width: 15px;
+            position: relative;
+            top: -18px;
+            left: -18px;
+            text-align: center;
+            vertical-align: center;
+            line-height: 15px;
+        }
+
+        .errmsg {
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            width: 100%;
+            min-height: 50px;
+            background-color: white;
+            border-top: 2px solid red;
+            box-shadow: 0px -2px 5px gray;
+            z-index: 200;
+            text-align: center;
+            font-size: 15px;
+            color: darkgray;
+        }
+
+        .power {
+            width: calc(100% - 20px);
+            font-size: 20px;
+            position: absolute;
+            min-height: 100%;
+            text-align: center;
+            padding: 10px;
+            padding-top: 30px;
+            background: #ffffffee;
+            z-index: 100;
+            top: 0px;
+            left: 0;
+        }
+
+        .dialog {
+            background-color: #ffffffee;
+            position: fixed;
+            top: 0px;
+            height: 100vh;
+            margin: 0px;
+            padding: 20px;
+            width: calc(100% - 18px);
+            vertical-align: middle;
+            align-items: center;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .dialog>div:first-child {
+            width: 80%;
+            padding-top: 20px;
+            background-color: white;
+            border: 2px solid orange;
+            border-radius: 10px;
+            font-size: 20px;
+            text-align: center;
+            top: 42%;
+            left: 50%;
+            position: absolute;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-55%, -50%);
+        }
+
+        .saving {
+            font-size: 16px;
+        }
+
+        .saving input[type="text"] {
+            font-size: 16px;
+        }
+
+        .saving input[type="button"] {
+            font-size: 16px;
+        }
+
+        .fullscreendlg {
+            width: calc( 100% - 20px);
+            font-size: 20px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            text-align: center;
+            padding: 10px;
+            padding-top: 30px;
+            background-color: white;
+            min-height: 100vh;
+            z-index: 199;
+            align-items: center;
+        }
+
+        .curwifilist td {
+            border: 1px dotted lightgray;
+            vertical-align: middle;
+        }
+
+        .curwifilist td img {
+            padding-top: 3px;
+        }
+
+        .wifilist {
+            border: 1px solid lightgray;
+            border-radius: 5px;
+            padding: 0px;
+        }
+
+        .wifilist table {
+            width: 100%;
+            /* calc( 100% - 10px ); */
+            border-collapse: collapse;
+            /* margin:5px; */
+            border-radius: 5px;
+        }
+
+        .wifilist td {
+            height: 20px;
+            padding: 5px;
+            border: 1px dotted lightgray;
+            text-align: center;
+            color: green;
+        }
+
+        .table {
+            display: table;
+        }
+
+        .table>div {
+            display: table-row;
+        }
+
+        .table>div>div {
+            display: table-cell;
+        }
+
+        .profiletable {
+            margin: 0 auto;
+            border-collapse: collapse;
+            max-width: 320px;
+        }
+
+        .profiletable tr td {
+            padding: 10px;
+        }
+
+        .gait tr
+        {
+        padding:0px;
+        margin:0px;
+        }
+        .gait td .btn
+        {
+        padding:10px;
+        margin:5px;
+        //border:1px solid black;
+        font-size:15px;
+        }
+        
+        .speedslider {
+            height: 15px;
+            //outline: none;
+            //width:150px;
+            -webkit-appearance: none;
+            /* Override default CSS styles */
+            appearance: none;
+            background: gray;
+            margin: 10px;
+        }
+
+        .speedslider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            /* Override default look */
+            appearance: none;
+            width: 25px;
+            /* Set a specific slider handle width */
+            height: 25px;
+            /* Slider handle height */
+            border-radius: 8px;
+            background: darkorange;
+            /* Green background */
+            cursor: pointer;
+            /* Cursor on hover */
+        }
+
+        .speedslider::-moz-range-thumb {
+            width: 25px;
+            /* Set a specific slider handle width */
+            height: 25px;
+            /* Slider handle height */
+            background: darkorange;
+            /* Green background */
+            cursor: pointer;
+            /* Cursor on hover */
+        }
+    </style>
+    <title>Robot Control</title>
+    <script language='javascript' type='text/javascript' src='ajaxutils.js'></script>
+    <script src="sliders.js"></script>
+    <script language='javascript'>
+        function showerror(msg) {
+            show("errmsg");
+            did("errmsg").innerHTML = msg;
+            window.setTimeout("did('errmsg').innerHTML='';hide('errmsg');", 2000);
+        }
+        showError = showerror;
+
+        function networkError() {}
+
+        function onDoNothing(r) {}
+
+        function clip(v, vmin, vmax) {
+            if (v < vmin) v = vmin;
+            if (v > vmax) v = vmax;
+            return v;
+        }
+
+        var kit_cmd = "/kitcommand?id=";
+        var attach_cmd = "/attachkit?id=";
+
+        var base_cmd = "/command?cmd=";
+        var sys_cmd = "/syscommand?cmd=";
+        var action = base_cmd + "action&v1=";
+        var direct = base_cmd + "direct&v1=";
+        var sequence_cmd = base_cmd + "sequence&v1=";
+        var config = {
+            "arm": true,
+            "drive": true,
+            "camera": true,
+            "armtype": "basic"
+        };
+
+        function ex(url) {
+            //console.log( "going to " + url );
+            execAjaxSimpleJson(url, "", onDoNothing, networkError);
+        }
+
+        function loadConfig() {
+            execAjaxSimpleJson("/config.json", "", onResp, networkError);
+
+            function onResp(r) {
+                config = r;
+                if (!config["camera"])
+                    did("camdiv").style.display = "none";
+
+                if (!config["camera"]) {
+                    hide("camoffbtn");
+                    hide("camonbtn");
+                }
+
+                start();
+            }
+            // initPositionSliders();
+
+        }
+
+        function goTop() {
+            window.scrollTo(0, 0);
+        }
+
+        function showTop(n) {
+            show(n);
+            goTop();
+        }
+
+        function showMessage(m) {
+            did("mmessagecontent").innerHTML = m;
+            showTop("mmessage");
+        }
+
+        function msgClose(m) {
+            showMessage(m + "<div class='btn' style='margin:20px' onclick='hide(\"mmessage\")' >Close</div>");
+        }
+
+        function msgAsk(m, onYes) {
+            showMessage(m +
+                "<div class='btn' style='margin:20px' onclick='hide(\"mmessage\");" + onYes + "' >Yes</div>" +
+                "<div class='btn' style='margin:20px' onclick='hide(\"mmessage\")' >No</div>"
+            );
+        }
+
+        function reboot() {
+            ex(base_cmd + "reboot");
+            hide("power");
+            showError("Rebooting");
+
+        }
+
+        function homeandreboot() {
+            window.setTimeout(reboot, 100);
+        }
+
+        function showrebootdlg(type) {
+            goTop();
+            did("reboottype").innerHTML = type;
+            did("reboottypedisp").innerHTML = "";
+            if (type == "wifi")
+                did("reboottypedisp").innerHTML = "and connect to local wifi network";
+            else if (type == "accesspoint")
+                did("reboottypedisp").innerHTML = "and start wifi hotspot";
+            show("rebootdlg");
+        }
+
+        function rebootwifi() {
+            var type = did("reboottype").innerHTML;
+            var cmd = "";
+            if (type == "wifi") {
+                execAjaxSimpleJson("accesspoint", "on=0", onResp, networkError);
+                showMessage("<b>Rebooting to connect to local wifi network..</b>" +
+                    "<ol style='text-align:left'>" +
+                    "<li>Wait for 4 minutes</li>" +
+                    "<li><a href='https://evodog.evodyne.co/';>Click Here</a> and enter your sticker id and code</li>" +
+                    "</ol>");
+            } else if (type == "accesspoint") {
+                execAjaxSimpleJson("accesspoint", "on=1", onResp, networkError);
+                showMessage("<b>Rebooting as wifi hotspot..</b><br/>" +
+                    "Follow these instructions carefully: " +
+                    "<ol style='text-align:left'>" +
+                    "<li>Wait for 4 minutes</li>" +
+                    "<li>Go to your phone or computer's wifi settings</li>" +
+                    "<li>Connect to the EvoDog## hotspot, password evodyne2020</li>" +
+                    "<li> Go to <a href='http://10.10.0.1:9072/'>http://10.10.0.1:9072/</a> to access this app</li>" +
+                    "</ol>");
+            } else if (!type || type == "" || type == "regular") {
+                homeandreboot();
+                showMessage("Rebooting.. " +
+                    "<ol style='text-align:left'>" +
+                    "<li>Wait for 4 minutes</li>" +
+                    "<li><span onclick='window.location.reload();return false' style='color:blue;font-weight:bold;cursor:pointer;'>Reload</span> the page</li>" +
+                    "</ol>"
+                );
+            }
+            hide("rebootdlg");
+
+            function onResp(r) {
+                showError("Rebooting..");
+            }
+        }
+
+        function shutdown() {
+            hide("power");
+            ex(base_cmd + "shutdown");
+            showError("Shutting down..");
+        }
+
+        function msgshutdown() {
+          goTop();
+          hide("shutdowndlg");
+          showMessage("Shutting down..this page will not be accessible anymore until you turn the switch off and on<br/><div class='bbtn' style='margin:20px' onclick='window.location.reload();return false;'>Reload</div> to access again after powering up");
+            window.setTimeout(shutdown, 100);
+        }
+        function service(name, action) {
+            ex(base_cmd + "service" + action + "&v1=" + name);
+        }
+
+        var img_first_fetch = true;
+        var got_img = false;
+
+        function oncamimgload() {
+            //hide the ask button since
+            //camera was already on
+            //so should just show it
+            got_img = true;
+            if (img_first_fetch) {
+                hide("camask");
+                did("camdiv").style.display = "";
+                hide("power");
+            }
+            img_first_fetch = false;
+        }
+
+        var camon = false; //by default
+        function camerapwr(on) {
+            hide("camask");
+            if (on) {
+                did("camdiv").style.display = "";
+                hide("power");
+                showError("Turning camera on, wait a few seconds");
+            } else {
+                did("camdiv").style.display = "none";
+                hide("power");
+                show( "camask" );
+                showError("Turning camera off");
+            }
+
+            camon = on;
+            service("camera", (on ? "start" : "stop"));
+            //ex( base_cmd + (on?"servicestart":"servicestop") + "&v1=camera" );
+        }
+
+        function restartusb(on) {
+            //ex( base_cmd + (on?"servicestart":"servicestop") + "&v1=evoduino" );
+            service("evoduino", (on ? "start" : "stop"));
+            if (!on) {
+                window.setTimeout("restartusb(1)", 2000);
+            }
+        }
+
+        function homeandrestartusb() {
+            msgClose("Restarting the USB connection to Arduino. Try moving the joints after 15 seconds");
+            window.setTimeout("restartusb(0)", 500);
+        }
+        var wificurlist = [];
+
+        function wifidel(i) {
+            if (i < wificurlist.length) {
+                did("wifidelname").innerHTML = wificurlist[i];
+                show("wifidel");
+            }
+        }
+
+        function delwifi() {
+            var name = did("wifidelname").innerHTML;
+            execAjaxSimpleJson("wifiremove", "v1=" + encu(name) + "&v2=1", onResp, networkError);
+
+            function onResp(r) {
+                if (r.error == 0) {
+                    showError("Network Configuration Deleted");
+                    getwificurlist();
+                    hide("wifidel");
+                } else
+                    showError("Error");
+            }
+        }
+
+        function getwificurlist() {
+            execAjaxSimpleJson("wifilist", "", onResp, networkError);
+
+            function onResp(r) {
+                wificurlist = r;
+                var h = "";
+                if (r.length == 0) {
+                    h = "No wifi networks configured. Scan For Networks to connect";
+                    did("rebootwifi").onclick = function() {};
+                } else {
+                    h = "<table class='curwifilist' style='width:100%'>";
+                    for (i = 0; i < r.length; i++) {
+                        h += "<tr><td>" + r[i] + "</td><td title='Delete' class='sbtn' onclick='wifidel(" + i + ");'><img src='./img/trash.png' /></td></tr>";
+                    }
+                    h += "</table>";
+                    did("rebootwifi").onclick = function() {
+                        showrebootdlg("wifi");
+                    };
+                }
+                did("wificurlist").innerHTML = h;
+            }
+        }
+
+        function wificonfig() {
+            show("wifidlg");
+            getwificurlist();
+            goTop();
+        }
+
+        function reverseString(str) {
+            return str.split("").reverse().join("");
+        }
+        var wifissids = [];
+
+        function wifisave() {
+            var ssid = did("wifissid").value;
+            var key = reverseString(did("wifikey").value);
+            execAjaxSimpleJson("wifisave", "v1=" + encu(ssid) + "&v2=" + encu(key) + "&v3=1",
+                onResp, networkError);
+
+            function onResp(r) {
+                getwificurlist();
+                hide("wifiask");
+                showError("Saved. Click <i>Reboot with Wifi Settings</i>");
+            }
+        }
+
+        function wifiadd() {
+            did("wifissid").value = "";
+            did("wifissid").disabled = false;
+            did("wifikey").value = "";
+            showTop("wifiask");
+        }
+
+        function savecurrposition() {
+            did("posname").value = "";
+            showTop("savecurrposition");
+        }
+
+        function wifiask(i) {
+            did("wifissid").value = wifissids[i];
+            did("wifissid").disabled = true;
+            showTop("wifiask");
+        }
+
+        function wifiscan() {
+            did("scanbtn").innerHTML = "Scanning..";
+            execAjaxSimpleJson("wifiscan", "", onResp, networkError);
+
+            function onResp(r) {
+                did("scanbtn").innerHTML = "Scan for Networks";
+                wifissids = r;
+                var h = "<div style='background-color:lightgray'>Nearby SSIDs</div>" +
+                    "<table>";
+                for (i = 0; i < r.length; i++) {
+                    h += "<tr><td onclick='wifiask(" + i + ")' >" + r[i] + "</td></tr>";
+                }
+                h += "</table>";
+                did("wifilist").innerHTML = h;
+            }
+        }
+
+        var statustimeout = null;
+
+        var camtimeout = null;
+        var ctr = 0;
+
+        function reloadcamimg() {
+            if (camtimeout)
+                window.clearTimeout(camtimeout);
+            camtimeout = window.setTimeout(getcamimg, 1000);
+        }
+
+        function getcamimg() {
+            if (!config["camera"])
+                return;
+            ctr++;
+            if (camon) {
+                did("camimg").src = "/cameraimg?ctr=" + ctr;
+                camtimeout = window.setTimeout(getcamimg, 300);
+            } else {
+                camtimeout = window.setTimeout(getcamimg, 500);
+            }
+        }
+
+        function start() {
+            // initPositionSliders();
+            if (config["camera"])
+                camtimeout = window.setTimeout(getcamimg, 1000);
+
+            statustimeout = window.setTimeout(getStatus, 200);
+        }
+
+        var last_status = null;
+        var currPosition;
+        var offsets = null;
+
+
+        function getStatus() {
+            currPosition = "";
+            execAjaxSimpleJson("/getstatus", "", onResp, networkError);
+            window.clearTimeout(statustimeout);
+            statustimeout = window.setTimeout(getStatus, 500); //slower
+            function onResp(r) {
+                window.clearTimeout(statustimeout);
+                statustimeout = window.setTimeout(getStatus, 200); //faster
+                if (r && hasProp(r, "status") && r["status"] && hasProp(r["status"], "pos")) {
+                    last_status = r["status"]["pos"];
+                    last_xyz= r["status"]["xyz"];
+		            if ( hasProp( r["status"], "apos" ) )
+		            {
+                        var offsets_str = r["status"]["apos"];
+		                var k = offsets_str.split(",");
+                        var speed_factor = k[1];
+		                updatespeed( speed_factor );
+		                offsets = k;
+		                offsets.splice( 0, 2 ); //remove speed_factor in beginning, leaving offsets
+		            }
+                    var f = last_status.split(",");
+                    var xyz = last_xyz.split(",");
+                    var dist = parseInt(f[3]);
+                    did("dist").innerHTML = (dist > 0 ? (dist + "mm") : "--");
+                    for (let i = 4; i < 16; i++) {
+		                var p = parseInt(f[i]);
+		                did("curapos"+(i-4)).innerHTML=p;//( (i==7||i>10)?-p:p);
+                        currPosition += p + ",";
+			            p = parseInt(xyz[i-4]);
+			            did("curcpos"+(i-4)).innerHTML = p;
+                    }
+                    currPosition = currPosition.substring(0, currPosition.length - 1);
+                    //console.log( dist );
+                }
+            }
+        }
+
+        function popDiscussion() {
+            window.open("https://www.evodyneacademy.com/forum/evodog", "_evoforum");
+        }
+
+        var tabdivs = ["poscontrol", "coorcontrol", "offsetscontrol", "apps", "create", "discussion"];
+        var numtabs = tabdivs.length;
+
+        function tabsel(t) {
+            //console.log( "Received " + t );
+            // console.log("tabsel")
+            // initSliders();
+            for (i = 0; i < numtabs; i++) {
+                did('tab' + i).className = "tab" + (i == t ? " sel" : "");
+                var d = ((i == t) ? "" : "none");
+                did(tabdivs[i]).style.display = d;
+                //console.log( "Setting " + tabdivs[i] + " to " + d );
+            }
+            if (tabdivs[t] == "poscontrol") {
+                console.log("pos");
+                show('new-pos-save');
+                show('new-pos-add');
+                hide('new-pos-stop');
+                hide('new-pos-play');
+                hide('new-pos-refresh');
+            }
+            // initPositionSliders();
+            else if (tabdivs[t] == "coorcontrol") {
+                console.log("coor");
+                show('new-pos-save');
+                show('new-pos-add');
+                hide('new-pos-stop');
+                hide('new-pos-play');
+                hide('new-pos-refresh');
+            }
+            else if (tabdivs[t] == "offsetscontrol") {
+                console.log("offsets");
+                show('new-pos-save');
+                show('new-pos-add');
+                hide('new-pos-stop');
+                hide('new-pos-play');
+                hide('new-pos-refresh');
+            }
+            //
+            else if (tabdivs[t] == "apps") {
+                hide('new-pos-save');
+                hide('new-pos-add');
+                show('new-pos-stop');
+                hide('new-pos-play');
+                show('new-pos-refresh');
+		getsequences();
+            }
+            //
+            else if (tabdivs[t] == "create") {
+                hide('new-pos-save');
+                hide('new-pos-add');
+                show('new-pos-stop');
+                show('new-pos-play');
+                hide('new-pos-refresh');
+            }
+            //
+            else if (tabdivs[t] == "discussion") {
+                popDiscussion();
+            }
+
+        }
+
+        function seltab(name) {
+            for (i = 0; i < numtabs; i++) {
+                if (tabdivs[i] == name) {
+                    tabsel(i);
+                    break;
+                }
+            }
+        }
+
+        var controltabdivs = ["frontcontrol", "backcontrol", "leftcontrol", "rightcontrol", "allcontrol"];
+        var controlnumtabs = controltabdivs.length;
+
+        function controltabsel(t, type) {
+            console.log("Received " + t);
+            // console.log("tabsel")
+            // initSliders();
+            for (i = 0; i < controlnumtabs; i++) {
+                did('controltab' + i + type).className = "tab" + (i == t ? " sel" : "");
+                var d = ((i == t) ? " " : "none");
+                did(controltabdivs[i] + type).style.display = d;
+                //console.log( "Setting " + tabdivs[i] + " to " + d );
+            }
+            sho(controltabdivs[t] + type, 1)
+
+        }
+
+        function pwr(on) {
+            ex(direct + (on ? "on" : "off"));
+        }
+
+        function stopsequence() {
+            ex(sys_cmd + "cancel_sequence");
+        }
+
+        function runsequence(s) {
+            ex(sequence_cmd + encu(s));
+        }
+
+        var positions = {};
+        var sequences = [];
+
+        function runseq(i) {
+            runsequence(sequences[i]);
+        }
+
+        function loadsequencej(name) {
+            execAjaxSimpleJson("getsequence?name=" + encu(name), "", onResp, networkError);
+
+            function onResp(r) {
+                if (r.error != 0)
+                    return;
+                seltab("create");
+                popsequence(name, r.sequence.sequence);
+            }
+        }
+
+        function loadsequencepy(name) {
+            execAjaxSimple("getsequence?name=" + encu(name), onResp, networkError);
+
+            function onResp(r) {
+                seltab("create");
+                popsequencepy(name, r);
+            }
+        }
+
+        function loadsequence(i) {
+            var name = sequences[i];
+            if (name.includes(".py"))
+                loadsequencepy(name);
+            else
+                loadsequencej(name);
+        }
+
+        function copysequence(i) {
+            execAjaxSimpleJson("copysequence?name=" + encu(sequences[i]), "", onResp, networkError);
+
+            function onResp(r) {
+                if (r.error != 0) {
+                    showError("Error");
+                    return;
+                }
+                showError("Copied to " + r.newname);
+                getsequences();
+            }
+        }
+
+        function deletesequencebyname(name) {
+            execAjaxSimpleJson("deletesequence?name=" + encu(name), "", onResp, networkError);
+
+            function onResp(r) {
+                if (r.error != 0) {
+                    showError("Error");
+                    return;
+                }
+                showError("Deleted " + name);
+                delseq = "";
+                getsequences();
+            }
+        }
+
+        function deletesequence(i) {
+            var name = sequences[i];
+            deletesequencebyname(name);
+        }
+
+        function delsequence() {
+            if (delseq != "") {
+                hide("delseq");
+                deletesequencebyname(delseq);
+            }
+        }
+
+        function fetchsequences(callback) {
+            execAjaxSimpleJson("sequences", "", onResp, networkError);
+
+            function onResp(r) {
+		if (!r || r == null )
+		  r = [];
+                sequences = r; //global
+                if (callback)
+                    callback(r);
+            }
+        }
+        var delseq = "";
+
+        function showDelSeq(n) {
+            delseq = n;
+            did("delseqname").innerHTML = n;
+            show("delseq");
+        }
+
+        function hideDelSeq() {
+            delseq = "";
+            hide("delseq");
+        }
+
+        function getsequences() {
+            fetchsequences(onResp);
+            //execAjaxSimpleJson( "sequences", "", onResp, networkError );
+            function onResp(r) {
+                //sequences = r; //global
+                var h = "<table class='sequences' >" +
+                    "<tr><th>Name</th><th>Copy</th><th>Edit</th><th>Delete</th></tr>";
+
+                for (i = 0; i < sequences.length; i++) {
+                    h += "<tr>" +
+                        "<td style='cursor:pointer' onclick='runseq(" + i + ")'>" + sequences[i] + "</td>" +
+                        "<td title='Duplicate' class='sbtn' onclick='copysequence(" + i + ")' ><img src='./img/copy.png' /></td>" +
+                        "<td title='Edit' class='sbtn' onclick ='loadsequence(" + i + ")' ><img src='./img/rename.png' /></td>" +
+                        "<td title='Delete' class='sbtn' onclick='showDelSeq(\"" + sequences[i] + "\");'><img src='./img/trash.png' /></td>" +
+                        "</tr>";
+                }
+                h += "</table>";
+                did("sequences").innerHTML = h;
+            }
+        }
+
+        var exsequence = [{
+            "cmd": "home",
+            "speed": 1.0,
+            "delay": 1.5
+        }];
+        var cursequence = null; //{name:name, sequence:seq}
+
+        function removeLine(td) {
+            var tr = td.parentNode;
+            var i = parseInt(tr.id.split("-")[1]);
+            if (cursequence.sequence.length > i) {
+                cursequence.sequence.splice(i, 1);
+                tr.parentNode.removeChild(tr);
+            }
+            for (k = i; k < cursequence.sequence.length; k++) {
+                var s = "line-" + (k + 1);
+                var o = did(s);
+                o.id = "line-" + k;
+            }
+        }
+        var SeqCommandTypes = {
+            "pos": "GoTo",
+            "posname": "GoTo",
+            "action": "Action",
+            "control": "Cmd",
+            "seq": "App"
+        };
+        var cmdDisplay = {
+            "off": "Power Off",
+            "on": "Power On",
+            "go": "Go",
+            "stop": "Stop",
+            "ignore": "Ignore",
+            "loop": "Loop"
+        };
+        var actDisplay = {
+            "sit": "Sit",
+            "bow": "Bow",
+            "walk": "Walk",
+            "trot": "Trot",
+            "walkb": "Walk Backward",
+            "trotb": "Trot Backward",
+            "gs": "Gait Reset Turn",
+            "gr": "Gait Increase Right",
+            "gl": "Gait Increase Left",
+            "gx": "Gait Increase Stride",
+            "gX": "Gait Decrease Stride",
+            "gy": "Gait Increase Height",
+            "gY": "Gait Decrease Height" 
+        };
+
+        function typeHTML(type) {
+            return "<div class='insertbtn' onclick='insertLine(this)'>+</div>" + SeqCommandTypes[type];
+        }
+
+        function popStrCommand(i, type, s) {
+            console.log("index: " + posindexforseq);
+            console.log("S: " + s);
+            if (!cursequence) {
+                cursequence = {
+                    "name": "",
+                    "sequence": []
+                };
+            }
+            if (i < 0)
+                i = cursequence.sequence.length;
+            if (i >= cursequence.sequence.length) {
+                cursequence.sequence.push({});
+                addLine(i, type, s, "1.0", "1.0");
+                cursequence.sequence[i].speed = 1.0;
+                cursequence.sequence[i].delay = 1.0;
+            }
+            console.log(posindexforseq);
+            cursequence.sequence[i].command = s;
+            cursequence.sequence[i].type = type;
+            did("line-" + i).cells[0].innerHTML = typeHTML(type);
+            if (type == "control")
+                did("line-" + i).cells[1].innerHTML = "<div class='cmdstr' onclick='popPosFromSeq(" + i + ")'>" + cmdDisplay[s] + "</div>";
+            else
+                did("line-" + i).cells[1].innerHTML = "<div class='cmdstr' onclick='popPosFromSeq(" + i + ")'>" + s + "</div>";
+        }
+
+        function addLine(i, type, command, speed, delay) {
+            var table = did("lines");
+            var row = table.insertRow(i + 1);
+            row.id = "line-" + i;
+            var h = "<td>" + typeHTML(type) + "</td>" +
+                "<td style='max-width:30%;word-wrap:break-word;overflow-wrap: break-word;word-break: break-all;'>";
+
+            h += "<div class='cmdstr' onclick='popPosFromSeq(" + i + ")'>" + (type == "control" ? cmdDisplay[command] : command) +
+                "</div></td>";
+            h += "<td><input type='text' size='3' value='" + (speed ? speed : "") + "'  /></td>" +
+                "<td><input type='text' size='3' value='" + (delay ? delay : 1.0) + "'  />" +
+                "</td><td onclick='removeLine(this)'>x" +
+                "</td>";
+            row.innerHTML = h;
+        }
+
+        function addLineFromSeq(i, s) {
+            addLine(i, s.type, s.command, s.speed, s.delay);
+        }
+
+        function insertLine(owhr) {
+            var tr = owhr.parentNode.parentNode;
+            var i = parseInt(tr.id.split("-")[1]);
+            for (k = (cursequence.sequence.length - 1); k >= i; k--) {
+                did("line-" + k).id = "line-" + (k + 1);
+            }
+            cursequence.sequence.splice(i, 0, {
+                "type": "control",
+                "command": "ignore",
+                "speed": "",
+                "delay": ""
+            });
+            addLineFromSeq(i, cursequence.sequence[i]);
+        }
+
+        function popsequencepy(name, s) {
+            clearsequence();
+            did("seqname").value = name;
+            cursequence = {
+                "name": name,
+                "type": "py",
+                sequence: null
+            }
+            did("linespy").value = s;
+            hide("seqj");
+            show("seqpy");
+        }
+
+        function popsequence(name, s) {
+            clearsequence();
+            for (i = 0; i < s.length; i++) {
+                addLine(i, s[i].type, s[i].command, s[i].speed, s[i].delay);
+            }
+            did("seqname").value = name;
+            cursequence = {
+                "name": name,
+                "sequence": s,
+                "type": "j"
+            }
+            if (!positions || isempty(positions))
+                fetchpositions();
+            hide("seqpy");
+            show("seqj");
+        }
+        var posseqname = "";
+        var posindexforseq = -1;
+
+        function clearsequence() {
+            did("seqname").value = "";
+            var table = did("lines");
+            var n = table.rows.length - 1;
+            for (i = n; i > 0; i--)
+                table.deleteRow(i); //always
+            cursequence = null;
+            posseqname = "";
+            posindexforseq = -1;
+
+            did("linespy").value = "";
+            hide("seqpy");
+            show("seqj");
+        }
+
+        function savesequence(doonsuccess) {
+            var name = did("seqname").value.trim();
+            if (name == "") {
+                showError("Specify a name");
+                return;
+            }
+            if (!cursequence) {
+                showError("Error");
+                return;
+            }
+            var str = "";
+
+            if (did("seqj").style.display == "") {
+                mode = "j";
+                if (name.includes(".")) {
+                    showError("Name cannot have a dot");
+                    return;
+                }
+            } else if (did("seqpy").style.display == "") {
+                mode = "py";
+                str = did("linespy").value.trim();
+                if (!name.endsWith(".py")) {
+                    showError("Name must end with .py");
+                    return;
+                }
+            }
+
+            if ((mode == "j" && cursequence.sequence.length == 0) ||
+                (mode == "py" && str == "")) {
+                showError("Program is empty");
+                return;
+            }
+            cursequence.name = name;
+            if (mode == "j") {
+                for (i = 0; i < cursequence.sequence.length; i++) {
+                    cursequence.sequence[i].speed = did("line-" + i).cells[2].getElementsByTagName("input")[0].value;
+                    cursequence.sequence[i].delay = did("line-" + i).cells[3].getElementsByTagName("input")[0].value;
+                }
+                str = JSON.stringify({
+                    "sequence": cursequence.sequence
+                });
+            }
+            var params = {};
+            params["name"] = name;
+            params["text"] = str;
+            console.log(params["text"]);
+            params["ow"] = 1; //overwrite always for now
+            execAjaxSimplePost("savesequence?", params, onResp, networkError);
+
+            function onResp(r) {
+                var j = eval('(' + r + ')');
+                if (j["error"] == 0) {
+                    showError("Saved");
+                    if (doonsuccess && doonsuccess == "close") {
+                        clearsequence();
+                        hide("seqpy");
+                        show("seqj");
+                        seltab("apps");
+                    } else if (doonsuccess && doonsuccess == "run") {
+                        showError("Saved, Running..");
+                        runsequence(name);
+                    }
+                } else
+                    showError("Error while saving " + j["erromsg"]);
+                //did("owevoscript").checked = false;
+                //window.setTimeout( "loadevoscripts('"+did("evosname").value+"')", 1000 );
+            }
+        }
+
+        function showcurposition() {
+            if (last_status && hasProp(last_status, "pos")) {
+                popPosition(last_status["pos"]);
+            } else {
+                popPosition(""); //dont have
+            }
+        }
+
+        function popPosition(s, name) {
+            show("position");
+        }
+
+        function popPosFromSeq(i) {
+            if (cursequence) {
+                if (cursequence.sequence[i].type == "pos") {
+                    popPosition(cursequence.sequence[i].command);
+                } else if (cursequence.sequence[i].type == "posname") {
+                    loadpos(cursequence.sequence[i].command);
+                } else if (cursequence.sequence[i].type == "action") {
+                    shownewline("action", cursequence.sequence[i].command);
+                } else if (cursequence.sequence[i].type == "control") {
+                    shownewline("control", cursequence.sequence[i].command);
+                } else if (cursequence.sequence[i].type == "seq") {
+                    shownewline("seq", cursequence.sequence[i].command);
+                }
+                posseqname = cursequence.name;
+                posindexforseq = i;
+                getpositions();
+            }
+        }
+
+        function loadpos(name) {
+            popPosition(positions[name], name);
+            return (positions[name]);
+        }
+
+        function gosavedpos(name) {;
+            sendCommand("w,1000," + loadpos(name));
+        }
+
+        function usesavedpos(name) {
+            // console.log(loadpos(name));
+            useposition(name, loadpos(name));
+        }
+
+        function fetchpositions() {
+            execAjaxSimpleJson("getpositions", "", onResp, networkError);
+
+            function onResp(r) {
+                positions = r.positions; //global
+            }
+        }
+
+        function expandpos(group, offset) //or collapse
+        {
+            var table = did("positionstable");
+            var n = table.rows.length - 1;
+            var gname = group + "/";
+            var expand = (table.rows[offset].cells[0].innerHTML[0] == '+');
+            table.rows[offset].cells[0].innerHTML = (expand ? "- " : "+ ") + gname;
+            for (i = (offset + 1); i < n; i++) {
+                if (table.rows[i].cells[0].innerHTML.indexOf(gname) == 0) {
+                    table.rows[i].style.display = (expand ? "" : "none"); //make visible
+                } else {
+                    break;
+                }
+            }
+        }
+
+        function getpositions() {
+            execAjaxSimpleJson("getpositions", "", onResp, networkError);
+
+            function onResp(r) {
+                if (r.error != 0) {
+                    did("positions").innerHTML = "";
+                } else {
+                    positions = r.positions; //global
+                    var h = "<table id='positionstable' style='border-collapse:collapse;font-size:14px'>";
+                    var hidden = false;
+                    var current_group = "";
+                    var r = 0;
+                    for (let posname in positions) {
+                        var slashpos = posname.indexOf("/");
+                        var visible = true;
+                        if (slashpos >= 0) {
+                            var group = posname.substr(0, slashpos);
+                            if (group != current_group) //show expander row
+                            {
+                                current_group = group;
+                                h += "<tr>" +
+                                    "<td style='cursor:pointer' onclick='expandpos(\"" + group + "\", " + r + ")'>+ " + group + "/</td>" +
+                                    "<td></td>" +
+                                    "<td></td>" +
+                                    "<td title='Delete' class='sbtn' onclick='showDelPosGroup(\"" + group + "\")' ><img src='./img/trash.png' /></td>" +
+                                    "</tr>";
+                            }
+                            visible = false; //group is continuing
+                        } else {
+                            current_group = "";
+                        }
+
+                        h += "<tr " + (visible ? "" : "style='display:none'") + " >" +
+                            "<td style='cursor:pointer;" + (current_group == "" ? "" : "padding-left:16px") + "' onclick='loadpos(\"" + posname + "\")'>" + posname + "</td>" +
+                            "<td title='Edit' ><span class='pbtn' onclick='editPosition(\"" + posname + "\")' >Edit</span></td>" +
+                            "<td title='Go' ><span class='pbtn' onclick='gosavedpos(\"" + posname + "\")' >Go</span></td>" +
+                            "<td title='Add to App'><span class='pbtn' onclick='usesavedpos(\"" + posname + "\")' >Add to App</span></td>" +
+                            "<td title='Delete' class='sbtn' onclick='showDelPos(\"" + posname + "\")' ><img src='./img/trash.png' /></td>" +
+                            "</tr>";
+
+                        r++;
+                    }
+                    h += "</table>";
+                    did("positions").innerHTML = h;
+                }
+            }
+        }
+
+        function showpositions() {
+            showcurposition();
+            getpositions();
+        }
+
+        function saveposition(str, name) {
+
+            if (!str) {
+                str = currPosition;
+            }
+            if (!name)
+                name = did("posname").value;
+            if (name.length > 30) {
+                showError("Name is too long");
+                return;
+            }
+            if (name.length > 0 && name.includes(":")) {
+                showError("Name cannot include a semi-colon :");
+                return;
+            }
+            if (name == "undefined") {
+                showError("Plese enter a name");
+                return;
+            }
+            if (name != "" && str.length > 0) {
+                var existed = hasProp(positions, name);
+                positions[name] = str; //save locally
+                var url = "saveposition?name=" + encodeURIComponent(name) + "&pos=" + encodeURIComponent(str);
+                execAjaxSimpleJson(url, "", onResp, networkError);
+                document.getElementById("posname").value = "";
+
+                function onResp(r) {
+                    if (!existed)
+                        getpositions();
+                }
+            } else {
+                if (name == "")
+                    showError("Specify a name");
+                else
+                    showError("Specify a position");
+            }
+            hide("savecurrposition");
+            showError("Saved Position")
+        }
+
+        function deleteposition(name) {
+            execAjaxSimpleJson("deleteposition?name=" + encodeURIComponent(name), "", onResp, networkError);
+
+            function onResp(r) {
+                if (r.error != 0) {
+                    showError("Error");
+                    return;
+                }
+                showError("Deleted " + name);
+                getpositions();
+            }
+        }
+
+        function showDelPos(n) {
+            did("delposname").innerHTML = n;
+            show("delpos");
+        }
+
+        function hideDelPos() {
+            hide("delpos");
+        }
+
+        function delpos() {
+            var n = did("delposname").innerHTML;
+            deleteposition(n);
+            hide("delpos");
+        }
+
+        function useposition(name, str, isCurrPosition) {
+
+            if (name != "" && str.length > 0) {
+                // saveposition(str, name);
+                //have to return name to sequence, not string
+                popStrCommand(posindexforseq, "posname", name);
+            } else if (str.length > 0) {
+                popStrCommand(posindexforseq, "pos", str);
+            }
+            hideposition();
+            if (!isCurrPosition)
+                seltab("create");
+
+        }
+
+        function addToAppBasedOnCurrPos() {
+            // addLine(0, "pos", currPosition, 1.0, 1.0);
+            popStrCommand(posindexforseq, "pos", currPosition);
+            showError("Added to App. Visit Create Tab to Edit!");
+        }
+
+        var posDetails = "";
+        var posName = "";
+
+        function editPosition(posname) {
+            posName = posname;
+            did("newposname").value = posname;
+            posDetails = loadpos(posname);
+            show("editposition");
+        }
+
+        function hideposition() {
+            hide("position");
+            posseqname = "";
+            posindexforseq = -1;
+        }
+
+        //pos|posname|seq|cmd|control
+
+        function shownewline(type, val) //preselect
+        {
+            show("newline");
+            //populate sequences
+            var o = did("cmdseq");
+            var h = "<option value='_none_'>Choose App</option>";
+            for (i = 0; i < sequences.length; i++) {
+                h += "<option value='" + sequences[i] + "'>" + sequences[i] + "</option>";
+            }
+            o.innerHTML = h;
+            if (type === "control")
+                did("controlseq").value = val;
+            else if (type === "seq")
+                did("cmdseq").value = val;
+
+        }
+
+        function addnewline() {
+            posindexforseq = -1; //none chosen
+            shownewline();
+        }
+
+        function chooseseq() {
+            var o = did("cmdseq");
+            var i = o.selectedIndex;
+            if (i > 0 && i < o.options.length) //done choose first entry
+            {
+                hide("newline");
+                popStrCommand(posindexforseq, "seq", o.options[o.selectedIndex].value);
+            }
+        }
+
+        function controlseq() {
+            var o = did("controlseq");
+            var i = o.selectedIndex;
+            if (i >= 0 && i < o.options.length) //done choose first entry
+            {
+                hide("newline");
+                popStrCommand(posindexforseq, "control", o.options[o.selectedIndex].value);
+            }
+        }
+
+        function controlaction() {
+            var o = did("controlact");
+            var i = o.selectedIndex;
+            if (i >= 0 && i < o.options.length) //done choose first entry
+            {
+                hide("newline");
+                popStrCommand(posindexforseq, "action", o.options[o.selectedIndex].value);
+            }
+        }
+
+        function showpower(t) {
+            sho("power", t);
+        }
+
+        function showCommands(t) {
+            sho("control_commands", t);
+        }
+
+        function showControlPower(t) {
+            sho("control_power", t)
+        }
+
+        function showOffsetControls(t) {
+            sho("set_offsets", t);
+        }
+
+        function changeusername() {
+            var u = did("newusername").value.trim();
+            if (u == "") {
+                showError("Enter something");
+                return;
+            }
+
+            execAjaxSimpleJson("changeusername?v1=" + encodeURIComponent(u), "", onResp, networkError);
+
+            function onResp(r) {
+                if (r.error != 0) {
+                    showError(r.errormsg);
+                    return;
+                }
+                hide("profiledlg");
+                showError("Username changed to " + u);
+            }
+        }
+
+        function changecode() {
+            var u = reverseString(did("oldcode").value.trim());
+            var v = reverseString(did("newcode").value.trim());
+            if (u == "" || v == "") {
+                showError("Enter something");
+                return;
+            }
+
+            execAjaxSimpleJson("changecode?v1=" + encu(u) +
+                "&v2=" + encu(v), "", onResp, networkError);
+
+            function onResp(r) {
+                if (r.error != 0) {
+                    showError(r.errormsg);
+                    return;
+                }
+                hide("profiledlg");
+                showError("Code changed");
+            }
+        }
+
+        function set90() {
+            ex(direct + "set90");
+            showError("Done");
+        }
+
+        function armcmd(cmd) {
+            ex(direct + encu(cmd));
+        }
+
+    </script>
+</head>
+
+<body onload='loadConfig()'>
+    <div id="camask" style="margin:20px auto;text-align:center">
+        <span class="btn" style="max-width:50vw;font-size:15px" onclick="camerapwr(true)"><img src="./img/camera.png"
+                width="20px" style="margin-bottom:-2px" />&nbsp;Turn Camera On</span>
+        <!--<span class="btn" style="max-width:40px;font-size:15px;" onclick="camerapwr(false);">X</span>-->
+    </div>
+    <div id='camdiv' style='width:100%;max-width:100vw;text-align:center;display:none;position:relative'>
+        <img id='camimg' src="/cameraimg" style='height:50vh;max-width:100vw;min-height:50vh' onerror='reloadcamimg()' onload='oncamimgload()'>
+        <div onclick="reloadcamimg()" class='cambtn' style='position:absolute;top:5px;left:5px;font-size:20px;line-height:20px;background-color:#FFA50080'><img src="./img/refresh.png"></div>
+        <div onclick="camerapwr(false)" class='cambtn' style='position:absolute;top:5px;right:5px;font-size:20px;line-height:20px;background-color:#FFA50080'>
+            &times;</div>
+    </div>
+    <div class="errmsg" style="display:none" id="errmsg"></div>
+    <div id="namediv" style="position:fixed;bottom:0px;left:0px;z-index:199;font-weight:bold" onclick="showTop('profiledlg');"></div>
+    <span class="logo" style="position:fixed;bottom:0px;right:0px;z-index:199" id="logo"><a
+            href="https://instagram.com/evodyneacademy" target="_new"><img src='./img/instagram-logo-200.png'
+                height='20px' /></a>&nbsp;&nbsp;<a href="https://evodyneacademy.com/forum/evodog/"
+            target="_new2"><img src="./img/evodynerobotics-logo-black-small.png" height="20px" /></a></span>
+    <div id="mmessage" class="dialog" style="display:none">
+        <div id="mmessagecontent">
+        </div>
+    </div>
+    <div id="delseq" class="dialog" style="display:none">
+        <div>
+            Delete app <span id="delseqname"></span>?
+            <div class="bbtn" style="margin:20px;" onclick="delsequence()">Yes</div>
+            <div class="bbtn" style="margin:20px;" onclick='hideDelSeq()'>No</div>
+        </div>
+    </div>
+
+    <div id="gaitdlg" class="dialog" style="display:none;z-index:201">
+     <div style="text-align:center">
+      <span id="gaitname" ></span> Gait Control
+        <br/>
+            <table style='margin:0 auto;width:calc(100vw-20px)' class="gait"  >
+              <tr>
+                <td></td><td><div class='btn' onclick="scmd('stand')">Stop</div></td><td></td>
+              </tr>
+              <tr>
+                <td></td><td><div class='btn bot-edge' onclick="gaitfwd()">Forward</div></td><td></td>
+              </tr>
+              <tr>
+                <td style="width:30%"><div class='btn right-edge' onclick="scmd('gl')">Left</div></td>
+                <td><div class='btn left-edge right-edge' onclick="scmd('gs')">Straight</div></td>
+                <td style="width:30%"><div class='btn left-edge' onclick="scmd('gr')">Right</div></td>
+              </tr>
+              <tr>
+               <td></td><td><div class='btn top-edge' onclick="gaitbwd()">Back</div></td><td></td>
+              </tr>
+              <tr>
+              <td colspan="3" style="padding:15px;border-top:1px solid orange" >Lean <div class="btn" style="display:inline" onclick="scmd('o,r')"/>Reset</div></td>  
+              </tr>
+              <tr>
+                <td>Forward</td>
+                <td>Right</td>
+                <td>Up</td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="btn" onclick="scmd('o,x')">&uarr;</div>
+                  <div class="btn" onclick="scmd('o,X')">&darr;</div>
+                </td>
+                <td>
+                  <div class="btn" onclick="scmd('o,z')">&larr;</div>
+                  <div class="btn" onclick="scmd('o,Z')">&rarr;</div>
+                </td>
+                <td>
+                  <div class="btn" onclick="scmd('o,y')">&uarr;</div>
+                  <div class="btn" onclick="scmd('o,Y')">&darr;</div>
+                </td>
+              </tr>
+              <tr style="border-top:1px solid orange" >
+                <td>Foot Height</td>
+                <td><div class="btn" onclick="scmd('gy')" >&uarr;</div></td>
+                <td><div class="btn" onclick="scmd('gY')" >&darr;</div></td>
+              </tr>
+            </table>
+
+           <div class="bbtn " style="margin:20px; " onclick="hide('gaitdlg') ">Close</div>
+     </div>
+    </div>
+
+    <div id="shutdowndlg" class="dialog" style="display:none">
+        <div>
+            Shutdown?
+            <div class="bbtn" style="margin:20px;" onclick="msgshutdown()">Yes</div>
+            <div class="bbtn" style="margin:20px;" onclick="hide('shutdowndlg')">No</div>
+        </div>
+    </div>
+
+    <div id="rebootdlg" class="dialog" style="display:none">
+        <div>
+            <div style="display:none" id="reboottype"></div>
+            Reboot <span id="reboottypedisp"></span>?
+            <div class="bbtn" style="margin:20px;" onclick="rebootwifi()">Yes</div>
+            <div class="bbtn" style="margin:20px;" onclick="hide('rebootdlg')">No</div>
+        </div>
+    </div>
+
+    <div id="delpos" class="dialog" style="display:none">
+        <div>
+            Delete position <span id="delposname"></span>?
+            <div class="bbtn" style="margin:20px;" onclick="delpos()">Yes</div>
+            <div class="bbtn" style="margin:20px;" onclick='hideDelPos()'>No</div>
+        </div>
+    </div>
+    <div id="wifidel" class="dialog" style="display:none">
+        <div>
+            Remove saved Wifi Network configuration <span id="wifidelname"></span>?
+            <div class="bbtn" style="margin:20px;" onclick="delwifi()">Yes</div>
+            <div class="bbtn" style="margin:20px;" onclick="hide('wifidel')">No</div>
+        </div>
+    </div>
+    <div id="wifiask" class="dialog" style="display:none;z-index:201">
+        <div style="text-align:center">
+            <table style="margin:0 auto; border-collapse:collapse;">
+                <tr>
+                    <td>SSID:</td>
+                    <td><input id="wifissid" type="text" value="" size="20"></td>
+                </tr>
+                <tr>
+                    <td>Key</td>
+                    <td><input type="password" id="wifikey" size="20" /></td>
+                </tr>
+            </table>
+            <div class="bbtn" style="margin:20px;" onclick="wifisave()">Save</div>
+            <div class="bbtn" style="margin:20px;" onclick="hide('wifiask')">Cancel</div>
+        </div>
+    </div>
+    <div id="savecurrposition" class="dialog" style="display:none;z-index:201">
+        <div style="text-align:center">
+            <table style="margin:0 auto; border-collapse:collapse;">
+                <tr>
+                    <td>Position Name:</td>
+                    <td><input id="posname" type="text" value="" size="20"></td>
+                </tr>
+            </table>
+            <div class="bbtn" style="margin:20px;" onclick="saveposition(false, document.getElementById('posname').value) ">Save</div>
+            <div class="bbtn " style="margin:20px; " onclick="hide('savecurrposition') ">Cancel</div>
+        </div>
+    </div>
+    <div id="editposition" class="dialog" style="display:none;z-index:201">
+        <div style="text-align:center">
+            <table style="margin:0 auto; border-collapse:collapse;">
+                <tr>
+                    <td>Position Name:</td>
+                    <td><input id="newposname" type="text" value="" size="20"></td>
+                </tr>
+            </table>
+            <div class="bbtn" style="margin:20px;" onclick="saveposition(posDetails, document.getElementById('newposname').value);deleteposition(posName);hide('editposition');">Save</div>
+            <div class="bbtn " style="margin:20px; " onclick="hide('editposition') ">Cancel</div>
+        </div>
+    </div>
+    <div class="fullscreendlg" style="display:none;" id="wifidlg">
+        <div onclick="hide('wifidlg')" class='tbtn' style='float:right;margin-top:-20px;font-size:40px;line-height:30px;'>&times;</div>
+        <b>Wifi Settings</b>
+        <br />
+        <br />
+        <div style="border:1px solid lightgray; border-radius:5px;">
+            <div style="background-color:lightgray">Configured Wifi Networks</div>
+            <div id="wificurlist">Updating..</div>
+        </div>
+        <br />
+        <div class='btn' id="rebootwifi" onclickcomment="showrebootdlg('wifi')">Reboot with Wifi Settings</div>
+        <div class='btn' onclick="showrebootdlg('accesspoint')">Reboot as Wifi Hotspot</div>
+        <div class="btn" onclick="wifiadd()">Add Wifi Network</div>
+        <div class="btn" onclick="wifiscan()" id="scanbtn">Scan for Networks</div>
+        <div id="wifilist" class="wifilist" style="margin-bottom:20px;"></div>
+        <div class="btn" onclick="hide('wifidlg')">Close</div>
+    </div>
+    <div class="dialog" style="display:none;" id="evocardlg">
+        <div>
+            Available in upgraded version
+            <div class="btn" style="margin:20px" onclick="hide('evocardlg')">Close</div>
+        </div>
+    </div>
+    <div class="fullscreendlg" style="display:none;text-align:center;" id="profiledlg">
+        <div onclick="hide('profiledlg')" class='tbtn' style='float:right;margin-top:-20px;font-size:40px;line-height:30px'>&times;</div>
+        <table class="profiletable">
+            <tr>
+                <td colspan="2"><b>Access Settings</b></td>
+            </tr>
+            <tr>
+                <td>Username:</td>
+                <td><input type="text" id="newusername" size="20" /></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="bbtn" onclick="changeusername()">Change</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">&nbsp;</td>
+            </tr>
+            <tr style="border-top:1px dotted gray;">
+                <td>Current Code:</td>
+                <td><input type="password" id="oldcode" size="20" /></td>
+            </tr>
+            <tr>
+                <td>New Code:</td>
+                <td><input type="password" id="newcode" size="20" /></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="bbtn" onclick="changecode()">Update</div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="bbtn" style="margin:20px auto;" onclick="hide('profiledlg')">Close</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="fullscreendlg" style="display:none;text-align:center;" id="settingsdlg">
+        <div onclick="hide('settingsdlg')" class='tbtn' style='float:right;margin-top:-20px;font-size:40px;line-height:30px'>&times;</div>
+        <span style='font-size:40px;'>Advanced Settings</span>
+        <!-- <div style='font-size:14px'>
+            Visually align each joint from A through F as close to its center postion as possible, THEN click the button below to calibrate the joints. Note that most of your existing apps will not be accurate anymore because positions will change.
+        </div> -->
+        <!-- <div class='btn' onclick="msgAsk('Are you sure?','set90()')">Calibration - Set As 90</div> -->
+
+        <div class='btn' onclick="service('evoduino','stop')">Turn Off Arduino USB</div>
+        <div class='btn' onclick="service('evoduino','start')">Turn On Arduino USB</div>
+        <div class='btn' onclick="scmd('setastall',true)">Set As Perfect Tall Position</div>
+        <div class='btn' onclick="hide('settingsdlg')">Close</div>
+    </div>
+
+    <div class="power" id="power" style="display:none;">
+        <center>
+            <div style="align-items:center;">
+                <div onclick="showpower(0)" class='tbtn' style='float:right;margin-top:-20px;font-size:40px;line-height:30px;'>&times;</div>
+                <span style='font-size:40px;'>Power / Settings</span>
+                <hr />
+                <!-- <div id='motorsoffbtn' class='btn' onclick="pwr(false)">Motors Off</div>
+                <div id='motorsonbtn' class='btn' onclick="pwr(true)">Motors On</div> -->
+                <div class='btn' onclick="showrebootdlg('')">Reboot</div>
+                <div class='btn' onclick="showTop('shutdowndlg');">Shut Down</div>
+                <div>
+                    <div id='camonbtn' class='btn' onclick="camerapwr(true)">Camera On</div>
+                    <div id="camoffbtn" class="btn" onclick="camerapwr(false)">Camera Off</div>
+                </div>
+                <div class='btn' onclick="homeandrestartusb()">Restart Arduino USB</div>
+                <div class='btn' onclick="wificonfig()">Wifi Settings</div>
+                <div class='btn' onclick="showTop('profiledlg');">Profile</div>
+                <!-- <div class='btn' onclick="showTop('evocardlg');">EvoCar</div> -->
+                <div class='btn' onclick="showTop('settingsdlg');">Advanced</div>
+                <!-- <div class='btn' onclick="showTop('tttdlg');">Tic Tac Toe!</div> -->
+                <div class='btn' onclick="updateFirmware()">Update Firmware</div>
+                <div class='btn' onclick="showpower(0)">Close</div>
+            </div>
+        </center>
+    </div>
+    <div class="control_power" id="control_power" style="display:none;">
+        <center>
+            <div style="align-items:center;">
+                <div onclick="showControlPower(0)" class='tbtn' style='float:right;margin-top:-20px;font-size:40px;line-height:30px;'>&times;</div>
+                <span style='font-size:40px;'>Control Power</span>
+                <hr />
+                <div id="motorson" class="btn" style="margin: 10px;" onclick="scmd('on')">
+                    Motors On
+                </div>
+                <div id="motorsoff" class="btn" style="margin: 10px;" onclick="scmd('off')">
+                    Motors Off
+                </div>
+            </div>
+        </center>
+    </div>
+    <div class="control_commands" id="control_commands" style="display:none;">
+        <center>
+            <div style="align-items:center;">
+                <div onclick="showCommands(0)" class='tbtn' style='float:right;margin-top:-20px;font-size:40px;line-height:30px;'>&times;</div>
+                <span style='font-size:40px;'>Basic Control</span>
+                <hr />
+                <div class="btn" style="margin: 10px;" onclick="showCommands(0);showOffsetControls(1)">
+                   Runtime Offsets 
+                </div>
+            </div>
+        </center>
+    </div>
+    <div class="set_offsets" id="set_offsets" style="display:none;">
+        <center>
+            <div style="align-items:center;">
+                <div onclick="showOffsetControls(0)" class='tbtn' style='float:right;margin-top:-20px;font-size:40px;line-height:30px;'>&times;</div>
+                <span style='font-size:40px;'>Advanced Control</span>
+                <hr />
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,fx')">
+                    Increase Front X
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,fy')">
+                    Increase Front Y
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,FX')">
+                    Decrease Front X
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,FY')">
+                    Decrease Front Y
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,bx')">
+                    Increase Back X
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,by')">
+                    Increase Back Y
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,BX')">
+                    Decrease Back X
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,BY')">
+                    Decrease Back Y
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,xs')">
+                    Increase Rotational Offset
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,XS')">
+                    Decrease Rotational Offset
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,rr')">
+                    Increase Right Offset
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,RR')">
+                    Decrease Right Offset
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,rl')">
+                    Increase Left Offset
+                </div>
+                <div class="btn" style="margin: 10px;" onclick="scmd('o,RL')">
+                    Decrease Left Offset
+                </div>
+                <div class=" btn " style="margin: 10px; " onclick="scmd('o,t')">
+                    Increase X Offset
+                </div>
+                <div class="btn " style="margin: 10px; " onclick="scmd('o,T')">
+                    Decrease X Offset
+                </div>
+                <div  class="btn " style="margin: 10px; " onclick="scmd('o,r')">
+                    Reset Offsets
+                </div>
+            </div>
+        </center>
+    </div>
+    <div class="position" style="display:none;" id="position">
+        <div onclick="hide('position')" class='tbtn' style='float:right;margin-top:-20px;font-size:40px;line-height:30px'>&times;</div>
+
+        <hr /> Saved Positions
+        <div class="positions" id="positions">
+        </div>
+        <div class='bbtn' style="margin-top:20px" onclick='hideposition()'>Close</div>
+        <br />
+        <br />
+    </div>
+    <div style='display:none'>
+
+    </div>
+    <div class="dlg newline" id="newline" style="display:none">
+        <br />
+        <br />
+        <div style='text-align:center'>
+            <table>
+                <tr>
+                    <th colspan='3' style='text-align:center' align='center'>Command Type</th>
+                </tr>
+                <tr>
+                    <td>Goto Position</td>
+                    <td>
+                        <div class="tbtn" style='margin-top:-8px' onclick="showpositions();hide('newline')"><img src="./img/list.png" /></div>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>Run Action</td>
+                    <td>
+                        <select id="controlact">
+                            <option value="sit">Sit</option>
+                            <option value="stand">Stand</option>
+                            <option value="tall">Tall</option>
+                            <option value="bow">Bow</option>
+                            <option value="walk">Walk</option>
+                            <option value="trot">Trot</option>
+                            <option value="walkb">Walk Backward</option>
+                            <option value="trotb">Trot Backward</option>
+                            <option value="m,b">Bark</option>
+                            <option value="m,o">Mouth Open</option>
+                            <option value="m,c">Mouth Close</option>
+                            <option value="m,f">Full Open</option>
+                            <option value="gs">Gait Reset Turn</option>
+                            <option value="gr">Gait Increase Right</option>
+                            <option value="gl">Gait Increase Left</option>
+                            <option value="gx">Gait Increase Stride</option>
+                            <option value="gX">Gait Decrease Stride</option>
+                            <option value="gy">Gait Increase Height</option>
+                            <option value="gY">Gait Decrease Height</option>
+                            <option value="sr">Gait Shuffle Right</option>
+                            <option value="sl">Gait Shuffle Left</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="bbtn" style="margin-top:7.5px" onclick="controlaction()" />Add
+                    </td>
+                </tr>
+                <tr>
+                    <td>Control</td>
+                    <td>
+                        <select id="controlseq">
+                            <option value="off">Power Off</option>
+                            <option value="on">Power On</option>
+                            <option value="go">Go</option>
+                            <option value="stop">Stop</option>
+                            <option value="ignore">Ignore</option>
+                            <option value="loop">Loop</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="bbtn" style="margin-top:7.5px" onclick="controlseq()" />Add
+                    </td>
+                </tr>
+                <tr>
+                    <td>App</td>
+                    <td>
+                        <select id="cmdseq">
+                    <option value="_none_">Choose App</option>
+                </select>
+                    </td>
+                    <td>
+                        <div class="bbtn" style="margin-top:7.5px" onclick="chooseseq()" />Add
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan='3'>
+                        <div class="bbtn" onclick="hide('newline')">Cancel</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <table style="margin:10px;width:calc(100% - 20px)">
+        <tr>
+            <td style='width:25%'>
+              <div id="stop-sc" class="btn right-edge" style="padding:3px"
+                   onclick="scmd('stop')">
+                Stop
+                <div style='font-size:10px; color:red'>Disable</div>
+                </div>
+            </td>
+            <td style='width:25%'>
+              <div id="go-sc" class="btn left-edge" style="padding:3px"
+                   onclick="scmd('go')">
+                    Go
+                    <div style='font-size:10px;color:green'>Enable</div>
+                </div>
+            </td>
+            <td style='width:25%'>
+              <div id="sit-sc" class="btn right-edge"
+                   onclick="scmd('sit')">
+                    Sit
+                </div>
+            </td>
+            <td style='width:25%'>
+              <div id="stand-sc" class="btn left-edge"
+                   onclick="scmd('stand')">
+                    Stand
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style='width:25%'>
+                <div id="walk-sc" class="btn right-edge" style="" onclick="showgaitdlg('walk')">
+                    Walk
+                </div>
+            </td>
+            <td style='width:25%'>
+                <div id="trot-sc" class="btn left-edge" style="" onclick="showgaitdlg('trot')">
+                  Trot
+                </div>
+            </td>
+            <td style='width:25%'>
+                <div id="tall-sc" class="btn right-edge" style="" onclick="scmd('tall')">
+                    Tall
+                </div>
+            </td>
+            <td style='width:25%'>
+                <div id="crouch-sc" class="btn left-edge" style="" onclick="scmd('crouch')">
+                  Crouch
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style='width:25%'>
+                <div class="btn right-edge" style="padding:3px" onclick="scmd('m,o')">
+                  Open
+                  <div style='font-size:10px;'>Mouth</div>
+                </div>
+            </td>
+            <td style='width:25%'>
+                <div class="btn left-edge" style="" onclick="scmd('m,c')">
+                  Close
+                </div>
+            </td>
+            <td style='width:25%'>
+                <div class="btn right-edge" style="padding:3px" onclick="scmd('m,f')">
+                  Open
+                    <div style='font-size:10px;'>Full</div>
+                </div>
+            </td>
+            <td style='width:25%'>
+                <div class="btn left-edge" style="" onclick="scmd('m,b')">
+                  Bark
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" style="font-size:12pt">Speed:
+                <input type="range" min="0.1" max="3" step="0.1" value="1.0" class="speedslider" id="speedslider" oninput="speedslider_moved=Date.now();setspeed(this.value)"><span id="speed" style="font-size:12pt">1.0</span>
+                <div class="btn" style="display:inline;text-align: center;float:right;margin-top:-6px;font-size:12pt" onclick="setspeed(1.0,true)">1.0</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4" style="font-size:12pt">Obstacle Distance: <span id="dist">--</span></td>
+        </tr>
+
+    </table>
+    <table style="margin:10px;width:calc(100% - 20px)">
+        <tr>
+            <td onclick='showCommands(1)'>
+                <div class='tbtn'><img src='./img/rc.png' /></div>
+            </td>
+            <td onclick='showControlPower(1)'>
+                <div class='tbtn'><img src='./img/power-black.png' /></div>
+            </td>
+            <td onclick='getsequences()' align='right' style='width:100%; display: none;' id='new-pos-refresh'>
+                <div class='tbtn'><img src='refresh.png' /></div>
+            </td>
+            <td onclick='savesequence("run")' align='right' style='width:100%; display: none;' id='new-pos-play'>
+                <div class='tbtn'><img src='play.png' /></div>
+            </td>
+            <td onclick='stopsequence()' align='right' style='width:100%; display: none;' id='new-pos-stop'>
+                <div class='tbtn'><img src='stop.png' /></div>
+            </td>
+            <td onclick='savecurrposition()' align='right' style='width:100%;' id='new-pos-save'>
+                <div class='tbtn'><img src='save.png' /></div>
+            </td>
+            <td onclick='addToAppBasedOnCurrPos()' align='right' style='width:100%;' id='new-pos-add'>
+                <div class='tbtn'><img src='add.png' /></div>
+            </td>
+            <td onclick='showpositions()' align='right' style='width:100%;'>
+                <div class='tbtn'><img src='positions.png' /></div>
+            </td>
+            <td onclick='showpower(1)' align='right' style='width:100%;'>
+                <div class='tbtn'><img src='./img/settings.png' /></div>
+            </td>
+
+        </tr>
+
+    </table>
+
+
+    <div id='tabbar' style='margin-bottom:5px;'>
+        <table style='width:100%;border-collapse:collapse;'>
+            <tr>
+                <td id='tab0' class='tab sel' onclick='tabsel(0)'>Angles</td>
+                <td id='tab1' class='tab' onclick='tabsel(1)'>Foot XYZ</td>
+                <td id='tab2' class='tab' onclick='tabsel(2)'>Offsets</td>
+                <td id='tab3' class='tab' onclick='tabsel(3)'>Apps</td>
+                <td id='tab4' class='tab' onclick='tabsel(4)'>Create</td>
+                <td id='tab5' class='tab' onclick='tabsel(5)'>Discuss</td>
+            </tr>
+            <tr class='trhr'>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+            </tr>
+        </table>
+    </div>
+    <div id="poscontrol">
+        <div class="armdiv" style="position:relative">
+            <div class="ped-background"></div>
+            <table style='margin:5px;width:calc(100% - 20px);border-collapse:collapse;'>
+                <tr>
+                    <td style="border-right:2px solid lightgray;border-bottom:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>FL</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,0,r')">
+                                        R-
+                                    </div>
+                                </td>
+				<td id='curapos0'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,0,R')">
+                                        R+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,0,h')">
+                                        H-
+                                    </div>
+                                </td>
+				<td id='curapos1'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,0,H')">
+                                        H+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,0,k')">
+                                        K-
+                                    </div>
+                                </td>
+				<td id='curapos2'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,0,K')">
+                                        K+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+
+                    <td style="border-bottom:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>FR</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,2,r')">
+                                        R-
+                                    </div>
+                                </td>
+				<td id='curapos6'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,2,R')">
+                                        R+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,2,h')">
+                                        H-
+                                    </div>
+                                </td>
+				<td id='curapos7'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,2,H')">
+                                        H+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,2,k')">
+                                        K-
+                                    </div>
+                                </td>
+				<td id='curapos8'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,2,K')">
+                                        K+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-right:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>BL</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,1,r')">
+                                        R-
+                                    </div>
+                                </td>
+				<td id='curapos3'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,1,R')">
+                                        R+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,1,h')">
+                                        H-
+                                    </div>
+                                </td>
+				<td id='curapos4'></td>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,1,H')">
+                                        H+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,1,k')">
+                                        K-
+                                    </div>
+                                </td>
+				<td id='curapos5'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,1,K')">
+                                        K+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+
+                    <td>
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>BR</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,3,r')">
+                                        R-
+                                    </div>
+                                </td>
+				<td id='curapos9'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,3,R')">
+                                        R+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,3,h')">
+                                        H-
+                                    </div>
+                                </td>
+				<td id='curapos10'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,3,H')">
+                                        H+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,3,k')">
+                                        K-
+                                    </div>
+                                </td>
+				<td id='curapos11'></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,3,K')">
+                                        K+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id='tabbar' style='margin-bottom:5px;'>
+            <table style='width:100%;border-collapse:collapse;'>
+                <tr>
+                    <td id='controltab0pos' class='tab' onclick='controltabsel(0, "pos")'>F
+                        <font size='-4'>ront</font>
+                    </td>
+                    <td id='controltab1pos' class='tab' onclick='controltabsel(1, "pos")'>B
+                        <font size='-4'>ack</font>
+                    </td>
+                    <td id='controltab2pos' class='tab' onclick='controltabsel(2, "pos")'>L
+                        <font size='-4'>eft</font>
+                    </td>
+                    <td id='controltab3pos' class='tab' onclick='controltabsel(3, "pos")'>R
+                        <font size='-4'>ight</font>
+                    </td>
+                    <td id='controltab4pos' class='tab' onclick='controltabsel(4, "pos")'>A
+                        <font size='-4'>ll</font>
+                    </td>
+                </tr>
+                <tr class='trhr'>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+
+                </tr>
+            </table>
+        </div>
+        <div id="frontcontrolpos" style="display:none">
+            <div class="armdiv" style="position:relative">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,4,r')">
+                                R-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,4,R')">
+                                R+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,4,h')">
+                                H-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,4,H')">
+                                H+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,4,k')">
+                                K-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,4,K')">
+                                K+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="backcontrolpos" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,5,r')">
+                                R-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,5,R')">
+                                R+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,5,h')">
+                                H-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,5,H')">
+                                H+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,5,k')">
+                                K-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,5,K')">
+                                K+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="leftcontrolpos" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,6,r')">
+                                R-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,6,R')">
+                                R+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,6,h')">
+                                H-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,6,H')">
+                                H+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,6,k')">
+                                K-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,6,K')">
+                                K+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="rightcontrolpos" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,7,r')">
+                                R-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,7,R')">
+                                R+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,7,h')">
+                                H-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,7,H')">
+                                H+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,7,k')">
+                                K-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,7,K')">
+                                K+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="allcontrolpos" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,8,r')">
+                                R-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,8,R')">
+                                R+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,8,h')">
+                                H-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,8,H')">
+                                H+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,8,k')">
+                                K-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('k,8,K')">
+                                K+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="coorcontrol" style="display:none">
+        <div class="armdiv" style="position:relative">
+            <div class="ped-background"></div>
+            <table style='margin:5px;width:calc(100% - 20px); border-collapse:collapse;'>
+                <tr>
+                    <td style="border-right:2px solid lightgray;border-bottom:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>FL</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn rbtn" onclick="scmd('j,0,z')">
+                                        Z-
+                                    </div>
+                                </td>
+				<td id="curcpos2"></td>
+                                <td>
+
+                                    <div class="btn rbtn" onclick="scmd('j,0,Z')">
+                                        Z+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn rbtn" onclick="scmd('j,0,y')">
+                                        Y-
+                                    </div>
+                                </td>
+				<td id="curcpos1"></td>
+                                <td>
+
+                                    <div class="btn rbtn" onclick="scmd('j,0,Y')">
+                                        Y+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn rbtn" style="margin:5px; text-align:center;" onclick="scmd('j,0,x')">
+                                        X-
+                                    </div>
+                                </td>
+				<td id="curcpos0"></td>
+                                <td>
+
+                                    <div class="btn rbtn" style="margin:5px; text-align:center;" onclick="scmd('j,0,X')">
+                                        X+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+
+                    <td style="border-bottom:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>FR</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,2,z')">
+                                        Z-
+                                    </div>
+                                </td>
+				<td id="curcpos8"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,2,Z')">
+                                        Z+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,2,y')">
+                                        Y-
+                                    </div>
+                                </td>
+				<td id="curcpos7"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,2,Y')">
+                                        Y+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,2,x')">
+                                        X-
+                                    </div>
+                                </td>
+				<td id="curcpos6"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,2,X')">
+                                        X+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>BL</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,1,z')">
+                                        Z-
+                                    </div>
+                                </td>
+				<td id="curcpos5"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,1,Z')">
+                                        Z+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,1,y')">
+                                        Y-
+                                    </div>
+                                </td>
+				<td id="curcpos4"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,1,Y')">
+                                        Y+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,1,x')">
+                                        X-
+                                    </div>
+                                </td>
+				<td id="curcpos3"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,1,X')">
+                                        X+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+
+                    <td style="border-left:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>BR</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,3,z')">
+                                        Z-
+                                    </div>
+                                </td>
+				<td id="curcpos11"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,3,Z')">
+                                        Z+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,3,y')">
+                                        Y-
+                                    </div>
+                                </td>
+				<td id="curcpos10"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,3,Y')">
+                                        Y+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,3,x')">
+                                        X-
+                                    </div>
+                                </td>
+				<td id="curcpos9"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,3,X')">
+                                        X+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id='tabbar' style='margin-bottom:5px;'>
+            <table style='width:100%;border-collapse:collapse;'>
+                <tr>
+                    <td id='controltab0coor' class='tab' onclick='controltabsel(0,"coor")'>F
+                        <font size='-4'>ront</font>
+                    </td>
+                    <td id='controltab1coor' class='tab' onclick='controltabsel(1,"coor")'>B
+                        <font size='-4'>ack</font>
+                    </td>
+                    <td id='controltab2coor' class='tab' onclick='controltabsel(2,"coor")'>L
+                        <font size='-4'>eft</font>
+                    </td>
+                    <td id='controltab3coor' class='tab' onclick='controltabsel(3,"coor")'>R
+                        <font size='-4'>ight</font>
+                    </td>
+                    <td id='controltab4coor' class='tab' onclick='controltabsel(4,"coor")'>A
+                        <font size='-4'>ll</font>
+                    </td>
+                </tr>
+                <tr class='trhr'>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+
+                </tr>
+            </table>
+        </div>
+        <div id="frontcontrolcoor" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,4,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,4,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,4,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,4,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,4,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,4,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="backcontrolcoor" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,5,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,5,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,5,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,5,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,5,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,5,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="leftcontrolcoor" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,6,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,6,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,6,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,6,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,6,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,6,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="rightcontrolcoor" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,7,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,7,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,7,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,7,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,7,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,7,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="allcontrolcoor" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,8,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,8,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,8,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,8,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,8,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('j,8,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="offsetscontrol" style="display:none">
+        <div class="armdiv" style="position:relative">
+            <div class="ped-background"></div>
+            <table style='margin:5px;width:calc(100% - 20px); border-collapse:collapse;'>
+                <tr>
+                    <td style="border-right:2px solid lightgray;border-bottom:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>FL</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn rbtn" onclick="scmd('o,0,z')">
+                                        Z-
+                                    </div>
+                                </td>
+				<td id="curcpos2"></td>
+                                <td>
+
+                                    <div class="btn rbtn" onclick="scmd('o,0,Z')">
+                                        Z+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn rbtn" onclick="scmd('o,0,y')">
+                                        Y-
+                                    </div>
+                                </td>
+				<td id="curcpos1"></td>
+                                <td>
+
+                                    <div class="btn rbtn" onclick="scmd('o,0,Y')">
+                                        Y+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn rbtn" style="margin:5px; text-align:center;" onclick="scmd('o,0,x')">
+                                        X-
+                                    </div>
+                                </td>
+				<td id="curcpos0"></td>
+                                <td>
+
+                                    <div class="btn rbtn" style="margin:5px; text-align:center;" onclick="scmd('o,0,X')">
+                                        X+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+
+                    <td style="border-bottom:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>FR</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,2,z')">
+                                        Z-
+                                    </div>
+                                </td>
+				<td id="curcpos8"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,2,Z')">
+                                        Z+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,2,y')">
+                                        Y-
+                                    </div>
+                                </td>
+				<td id="curcpos7"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,2,Y')">
+                                        Y+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,2,x')">
+                                        X-
+                                    </div>
+                                </td>
+				<td id="curcpos6"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,2,X')">
+                                        X+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                  <td colspan="2" align="center" ><div class="btn" style="max-width:100px" onclick="scmd('o,r')" >Reset All</div></td>
+                </tr>
+                <tr>
+                    <td>
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>BL</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,1,z')">
+                                        Z-
+                                    </div>
+                                </td>
+				<td id="curcpos5"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,1,Z')">
+                                        Z+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,1,y')">
+                                        Y-
+                                    </div>
+                                </td>
+				<td id="curcpos4"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,1,Y')">
+                                        Y+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,1,x')">
+                                        X-
+                                    </div>
+                                </td>
+				<td id="curcpos3"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,1,X')">
+                                        X+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+
+                    <td style="border-left:2px solid lightgray">
+                        <table>
+                            <tr>
+                                <th colspan='3' align='center'>
+                                    <h1>BR</h1>
+                                </th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,3,z')">
+                                        Z-
+                                    </div>
+                                </td>
+				<td id="curcpos11"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,3,Z')">
+                                        Z+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,3,y')">
+                                        Y-
+                                    </div>
+                                </td>
+				<td id="curcpos10"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,3,Y')">
+                                        Y+
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,3,x')">
+                                        X-
+                                    </div>
+                                </td>
+				<td id="curcpos9"></td>
+                                <td>
+
+                                    <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,3,X')">
+                                        X+
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id='tabbaroffsets' style='margin-bottom:5px;'>
+            <table style='width:100%;border-collapse:collapse;'>
+                <tr>
+                    <td id='controltab0offsets' class='tab' onclick='controltabsel(0,"offsets")'>F
+                        <font size='-4'>ront</font>
+                    </td>
+                    <td id='controltab1offsets' class='tab' onclick='controltabsel(1,"offsets")'>B
+                        <font size='-4'>ack</font>
+                    </td>
+                    <td id='controltab2offsets' class='tab' onclick='controltabsel(2,"offsets")'>L
+                        <font size='-4'>eft</font>
+                    </td>
+                    <td id='controltab3offsets' class='tab' onclick='controltabsel(3,"offsets")'>R
+                        <font size='-4'>ight</font>
+                    </td>
+                    <td id='controltab4offsets' class='tab' onclick='controltabsel(4,"offsets")'>A
+                        <font size='-4'>ll</font>
+                    </td>
+                </tr>
+                <tr class='trhr'>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+                    <td> </td>
+
+                </tr>
+            </table>
+        </div>
+        <div id="frontcontroloffsets" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,4,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,4,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,4,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,4,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,4,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,4,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="backcontroloffsets" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,5,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,5,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,5,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,5,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,5,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,5,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="leftcontroloffsets" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,6,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,6,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,6,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,6,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,6,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,6,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="rightcontroloffsets" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,7,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,7,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,7,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,7,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,7,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,7,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        <div id="allcontroloffsets" style="display:none">
+            <div class="armdiv">
+                <table style="align-content: center;">
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,8,z')">
+                                Z-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,8,Z')">
+                                Z+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,8,y')">
+                                Y-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,8,Y')">
+                                Y+
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,8,x')">
+                                X-
+                            </div>
+                        </td>
+                        <td>
+
+                            <div class="btn" style="margin:5px; text-align:center;" onclick="scmd('o,8,X')">
+                                X+
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+    </div>
+    
+    <div id="apps" style="display:none">
+
+        <div id="sequences" style="padding:10px;font-size:20px">Loading Sequences..</div>
+    </div>
+    <div id="create" style="display:none">
+
+        <div class="saving" style='padding:10px;'>
+            <input type="text" style="font-size:16px" value="" placeholder="name.." id="seqname" />
+            <input type="button" value="Save" onclick="savesequence('save')" />
+            <br/>
+            <input type="button" value="Discard Changes" onclick="clearsequence()" />
+            <input type="button" value="Save & Close" onclick="savesequence('close')" />
+        </div>
+        <div id="seqj">
+            <div class="lines" style="font-size:20px">
+                <table class="sequence" id="lines">
+                    <tr>
+                        <td>Type</td>
+                        <td>Value</td>
+                        <td>Speed<br/><span class="unit">x1</span></td>
+                        <td>Delay<br/><span class='unit'>seconds</span></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="bbtn" style='margin:20px;text-align:center' onclick="addnewline()">Add Line</div>
+        </div>
+        <div id="seqpy" style="display:none">
+            <textarea id="linespy" placeholder="python code" style="width:calc(100vw - 40px);height:50vh;margin-left:10px;">
+            </textarea>
+        </div>
+    </div>
+
+
+    <div id="discussion" style="display:none"></div>
+    <br />
+    <br />
+
+    <script>
+
+        var powerOn = true;
+
+        function updateFirmware() {
+            sendCommand("updateFirmware", true);
+        }
+
+        var last_status = {};
+        var last_name = "";
+
+        function sendSliderCommands(sliderID) {
+            if (!sliders.inited)
+                return "";
+
+            var cmd = "";
+            if (sliderID == 0 || sliderID == 1 || sliderID == 2) {
+                for (i = 0; i < 3; i++) {
+                    var s = sliders.s[i];
+                    // if (s.x == 0)
+                    //     continue;
+                    var str = s.id.substr(6) + ":";
+                    var val = s.actualX;
+
+                    val = Math.round((val + Number.EPSILON) * 100) / 100;
+                    if (s.invert)
+                        val = -val;
+                    str += (val > 0 ? "+" : "") + val;
+                    if (cmd != "")
+                        cmd += ",";
+                    cmd += str;
+                }
+            } else if (sliderID == 3 || sliderID == 4 || sliderID == 5) {
+                for (i = 3; i < 6; i++) {
+                    var s = sliders.s[i];
+                    // if (s.x == 0)
+                    //     continue;
+                    var str = s.id.substr(6) + ":";
+                    var val = s.actualX;
+
+
+                    val = Math.round((val + Number.EPSILON) * 100) / 100;
+                    if (s.invert)
+                        val = -val;
+                    str += (val > 0 ? "+" : "") + val;
+                    if (cmd != "")
+                        cmd += ",";
+                    cmd += str;
+                }
+            } else if (sliderID == 6 || sliderID == 7 || sliderID == 8) {
+                for (i = 6; i < 9; i++) {
+                    var s = sliders.s[i];
+                    // if (s.x == 0)
+                    //     continue;
+                    var str = s.id.substr(6) + ":";
+                    var val = s.actualX;
+
+
+                    val = Math.round((val + Number.EPSILON) * 100) / 100;
+                    if (s.invert)
+                        val = -val;
+                    str += (val > 0 ? "+" : "") + val;
+                    if (cmd != "")
+                        cmd += ",";
+                    cmd += str;
+                }
+            } else if (sliderID == 9 || sliderID == 10 || sliderID == 11) {
+                for (i = 9; i < 12; i++) {
+                    var s = sliders.s[i];
+                    // if (s.x == 0)
+                    //     continue;
+                    var str = s.id.substr(6) + ":";
+                    var val = s.actualX;
+
+
+                    val = Math.round((val + Number.EPSILON) * 100) / 100;
+                    if (s.invert)
+                        val = -val;
+                    str += (val > 0 ? "+" : "") + val;
+                    if (cmd != "")
+                        cmd += ",";
+                    cmd += str;
+                }
+            }
+
+            arm_active = (cmd != "");
+            console.log(cmd)
+
+            //ex( direct + encodeURIComponent(drivecmd) );
+            execAjaxSimpleJson(direct + encodeURIComponent(cmd), "",
+                onResp, networkError);
+            //console.log( "sending " + drivecmd );
+            if (!arm_active) {
+                if (tout < 1000)
+                    tout += 50; //slow down the sending since not driving
+            } else
+                tout = 50; //keep sending quickly
+            // if (sendtimeout)
+            //     window.clearTimeout(sendtimeout);
+            // sendtimeout = window.setTimeout(sendCommands, tout);
+            function onResp(r) {
+                if (r.error == 0) {
+                    last_status = r.status;
+                    if (last_status && hasProp(last_status, "err_seq"))
+                        showError("Error in app");
+                    if (hasProp(r, "name") && last_name != r.name) {
+                        last_name = r.name;
+                        did("namediv").innerHTML = r.name + "'s EvoArm ";
+                    }
+                }
+                //console.log( last_status );
+            }
+        }
+
+        function sendCommand(command, is_action) {
+
+            if (!is_action)
+                execAjaxSimpleJson(direct + encodeURIComponent(command), "",
+                    onResp, networkError);
+            else
+                execAjaxSimpleJson(action + encodeURIComponent(command), "",
+                    onResp, networkError);
+            console.log("sending " + action + encodeURIComponent(command));
+
+            function onResp(r) {
+                if (r.error == 0) {
+                    last_status = r.status;
+                    if (last_status && hasProp(last_status, "err_seq "))
+                        showError("Error in app ");
+                    if (hasProp(r, "name ") && last_name != r.name) {
+                        last_name = r.name;
+                        did("namediv ").innerHTML = r.name + "'s EvoDog";
+                    }
+                }
+                //console.log( last_status );
+            }
+        }
+
+        function scmd(cmd, is_action) {
+            sendCommand(cmd, is_action);
+            if (cmd == "on" || cmd == "off") {
+                showControlPower(0);
+            }
+        }
+var curgait = "";
+function gaitfwd()
+{
+    scmd( curgait );
+}
+function gaitbwd()
+{
+    scmd( curgait + "b" );
+}
+function showgaitdlg( g )
+{
+    curgait = g;
+    did("gaitname").innerHTML = curgait[0].toUpperCase() + curgait.slice(1);
+    show( "gaitdlg" );
+}
+
+
+	var speedslider_moved = 0;
+
+        function setspeed(s, update_slider) {
+            did("speed").innerHTML = s;
+            if (update_slider)
+                did("speedslider").value = s;
+            sendCommand("s:" + s, false);
+        }
+        function updatespeed(s) {
+	    var curspeed = did("speed").innerHTML;
+	    if ( curspeed == s || (curspeed+"0") == s 
+	    	|| (speedslider_moved+200) > Date.now() )
+		return;
+            did("speed").innerHTML = s;
+            did("speedslider").value = s;
+        }
+    </script>
+</body>
+
+</html>

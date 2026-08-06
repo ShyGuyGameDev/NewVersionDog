@@ -1,0 +1,1 @@
+{"sequence":[{"command":"a:90,b:100,c:120,d:90,e:167,f:90","delay":"1.0","speed":"1.0","type":"pos"},{"command":"a:90,b:100,c:120,d:30.72,e:167,f:90","delay":"1.5","speed":"2.0","type":"pos"},{"command":"a:90,b:100,c:120,d:179,e:167,f:90","delay":"1.5","speed":"2.0","type":"pos"},{"speed":"1.0","delay":"1.0","command":"home","type":"control"}]}

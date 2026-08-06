@@ -1,0 +1,9 @@
+{
+    "arm": false,
+    "drive": false,
+    "camera": true,
+    "armtype": "basic",
+    "mosfet": false,
+    "evotype" : "evodog",
+    "arduino" : "atmega328p"
+}

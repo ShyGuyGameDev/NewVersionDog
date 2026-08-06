@@ -1,0 +1,36 @@
+{
+    "objects":
+    {
+        "ROBOT_BASE_TARGET":
+        {
+            "parent_id": "WORLD",
+            "name": "RobotBase_TARGET",
+            "showname": true,
+            "showaxis": true
+        },
+
+        "ROBOT_BASE_XRIGHT_TARGET":
+        {
+            "parent_id": "ROBOT_BASE_TARGET",
+            "name": "RobotBaseXRight_TARGET",
+            "origin":
+            {
+                "rotation":    [0,0,-90]
+            }
+        },
+
+        "ROBOT_TOP_TARGET":
+        {
+            "parent_id": "ROBOT_BASE_XRIGHT_TARGET",
+            "name": "RobotTop_TARGET",
+            "showname": true,
+            "origin":
+            {
+                "translation": [0,0,225.327,"mm"],
+		        "comment": "max height of straight legs.",
+                "shape_commented":{"type":"box","xwidth":"18in","yheight":"28in","zdepth":"6in","color":"white"},
+                "showaxis":true
+            }
+        }
+    }
+}

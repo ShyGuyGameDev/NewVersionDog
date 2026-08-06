@@ -1,0 +1,166 @@
+{
+    "comment": "How to specify a saved post that is flexible for various situations. we could either save leg angles, which is quite absolute, or body top pose, and leg offsets from default zero position",
+
+    "poses": {
+        "tall":
+        {
+            "robot_top": {
+                "t" : [ 0, 0, 225.327 ],
+                "r" : [ 0, 0, 0 ],
+                "comment": "translation and rotation of robot_top above robot_base"
+            },
+
+            "foot_offsets":
+            {
+                "FL": { "x": 0, "y": 0, "z": 0 },
+                "BL": { "x": 0, "y": 0, "z": 0 },
+                "FR": { "x": 0, "y": 0, "z": 0 },
+                "BR": { "x": 0, "y": 0, "z": 0 }
+            },
+            "duration" : 2000
+        },
+        "stand":
+        {
+            "robot_top": {
+                "t" : [ 0, 0, 200 ],
+                "r" : [ 0, 0, 0 ]
+            },
+
+            "foot_offsets":
+            {
+                "FL": { "x": 0, "y": 0, "z": 0 },
+                "BL": { "x": 0, "y": 0, "z": 0 },
+                "FR": { "x": 0, "y": 0, "z": 0 },
+                "BR": { "x": 0, "y": 0, "z": 0 }
+            },
+            "duration" : 2000
+        },
+        "down":
+        {
+            "robot_top": {
+                "t" : [ 0, 0, 150 ],
+                "r" : [ 0, 0, 0 ]
+            },
+
+            "foot_offsets":
+            {
+                "FL": { "x": 0, "y": 0, "z": 0 },
+                "BL": { "x": 0, "y": 0, "z": 0 },
+                "FR": { "x": 0, "y": 0, "z": 0 },
+                "BR": { "x": 0, "y": 0, "z": 0 }
+            },
+            "duration" : 1000
+        },
+        "twistleft":
+        {
+            "robot_top": {
+                "t" : [ 0, 0, 200 ],
+                "r" : [ 0, 0, 20 ]
+            },
+
+            "foot_offsets":
+            {
+                "FL": { "x": 0, "y": 0, "z": 0 },
+                "BL": { "x": 0, "y": 0, "z": 0 },
+                "FR": { "x": 0, "y": 0, "z": 0 },
+                "BR": { "x": 0, "y": 0, "z": 0 }
+            },
+            "duration" : 1000
+        },
+        "twistright":
+        {
+            "robot_top": {
+                "t" : [ 0, 0, 200 ],
+                "r" : [ 0, 0, -20 ]
+            },
+
+            "foot_offsets":
+            {
+                "FL": { "x": 0, "y": 0, "z": 0 },
+                "BL": { "x": 0, "y": 0, "z": 0 },
+                "FR": { "x": 0, "y": 0, "z": 0 },
+                "BR": { "x": 0, "y": 0, "z": 0 }
+            },
+            "duration" : 1000
+        },
+        "lookup":
+        {
+            "robot_top": {
+                "t" : [ 0, 0, 150 ],
+                "r" : [ 15, 0, 0 ]
+            },
+
+            "foot_offsets":
+            {
+                "FL": { "x": 0, "y": 0, "z": 0 },
+                "BL": { "x": 0, "y": 0, "z": 0 },
+                "FR": { "x": 0, "y": 0, "z": 0 },
+                "BR": { "x": 0, "y": 0, "z": 0 }
+            },
+            "duration" : 1000
+        },
+        "flraised":
+        {
+            "robot_top": {
+                "t" : [ 0, 0, 200 ],
+                "r" : [ 0, 0, 0 ]
+            },
+
+            "foot_offsets":
+            {
+                "FL": { "x": 0, "y": 0, "z": 30 },
+                "BL": { "x": 0, "y": 0, "z": 0 },
+                "FR": { "x": 0, "y": 0, "z": 0 },
+                "BR": { "x": 0, "y": 0, "z": 0 }
+            },
+            "duration" : 1000
+        },
+        "floutfront":
+        {
+            "robot_top": {
+                "t" : [ 0, 0, 200 ],
+                "r" : [ 0, 0, 0 ]
+            },
+
+            "foot_offsets":
+            {
+                "FL": { "x": 200, "y": 0, "z": 180 },
+                "BL": { "x": 0, "y": 0, "z": 0 },
+                "FR": { "x": 0, "y": 0, "z": 0 },
+                "BR": { "x": 0, "y": 0, "z": 0 }
+            },
+            "duration" : 1000
+        }
+
+    },
+    "sequences-comment": "sequence of poses, with time interval for each",
+    "sequences": {
+        "crouch": [
+            { "pose":   "down" ,  "duration": 1000},
+            { "action": "wait" ,  "duration": 500},
+            { "pose":   "stand" , "duration": 1000}
+        ],
+        "peek": [
+            { "pose": "tall" ,  "duration": 1500},
+            { "pose": "stand" , "duration": 1000}
+        ],
+        "stretch": [
+            { "pose": "tall" ,  "duration": 1500},
+            { "pose": "stand" , "duration": 1000},
+            { "pose": "twistleft" , "duration": 1000},
+            { "pose": "twistright" , "duration": 2000},
+            { "pose": "down" , "duration": 2000},
+            { "pose": "lookup" , "duration": 2000},
+            { "pose": "stand" , "duration": 1000}
+        ],
+        "verydown": [
+            {
+                "pose":
+                {
+                    "robot_top": { "t": [0,0,150] }
+                },
+                "duration": 2000
+            }
+        ]
+    }
+}

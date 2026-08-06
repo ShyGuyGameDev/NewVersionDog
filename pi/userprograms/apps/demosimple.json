@@ -1,0 +1,1 @@
+{"sequence":[{"speed":"1.0","delay":"3","command":"sit","type":"action"},{"speed":"1.0","delay":"3","command":"getup","type":"action"},{"speed":"1.0","delay":"3","command":"tall","type":"action"},{"speed":"1.0","delay":"3","command":"stand","type":"action"},{"speed":"1.0","delay":"1.0","command":"loop","type":"control"}]}
