@@ -1,7 +1,13 @@
 [Unit]
-Description=camera
+Description=camera (raw + YOLO11n annotated streams)
 Requires=network-online.target
 After=network.target sysinit.target network-online.target
+
+# Deploy (once on the Pi):
+#   pip3 install ultralytics opencv-python numpy
+#   place yolo11n.pt in /home/pi/system/  (or allow ultralytics to download it)
+#   sudo systemctl restart camera
+# Endpoints: :8000/frame.jpg, /annotated.jpg, /detections.json
 
 [Service]
 ExecStart=/usr/bin/python3 /home/pi/system/cam.py

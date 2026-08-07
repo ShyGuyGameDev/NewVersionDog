@@ -1,0 +1,32 @@
+NewVersionDog camera + YOLO11n deploy notes
+===========================================
+
+Files:
+  /home/pi/system/cam.py
+  /home/pi/system/IRLClassification.py
+  /home/pi/system/camconfig.json
+  /home/pi/system/yolo11n.pt          (model weights)
+  /home/pi/system/srv/index.html      (dual camera panels)
+
+Install (Python 3, on the Pi):
+  pip3 install ultralytics opencv-python numpy
+  # Also install a Raspberry Pi–compatible torch CPU wheel if ultralytics does not pull one.
+
+Model:
+  Place yolo11n.pt in /home/pi/system/
+  Or let ultralytics download it on first run (needs network).
+
+Restart:
+  sudo systemctl restart camera
+
+Verify:
+  curl -I http://localhost:8000/frame.jpg
+  curl -I http://localhost:8000/annotated.jpg
+  curl http://localhost:8000/detections.json
+
+Web UI:
+  Left panel  = raw (/cameraimg proxy)
+  Right panel = annotated (http://<pi-host>:8000/annotated.jpg)
+
+Movement integration later:
+  Poll http://localhost:8000/detections.json for latest hierarchy detections.
