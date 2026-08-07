@@ -3,31 +3,42 @@ from evoros import *
 #start ros connection
 initevoros()
 
-#add your commands here
-#print "Turning on"
 turnOn()
 
-#print "Example for going to a position"
-#you can use the response of the "i" command from getpos.py or evodogocontrol.py
-#goToBodyPos( 2000, "0,38,65,0,38,65,0,-38,-65,0,-38,-65" )
-#time.sleep( 3 )
+# Improved high five (front-right paw):
+# - no spaces in pose strings (firmware parser is picky)
+# - weight-shift before lifting so the dog stays balanced
+# - raise / tap / raise / tap, then settle and sit
+# Joint order: FL, BL, FR, BR  (swivel, shoulder, elbow each)
 
-#print "Walking for 3 seconds"
-#walkFor3Seconds() #example function 
+command("stand")
+time.sleep(0.6)
 
-#print "Going to stand"
-#stand()
-#time.sleep(goToBodyPos( 2000, "0,38,65,0,38,65,0,-38,-65,0,-38,-65" ))
-command("stand")
-time.sleep(2)
-goToBodyPos( 2000, "0,10,65,0,38,65,0, -90,90,0,38,65" )
-time.sleep(2)
-goToBodyPos( 2000, "0,10,65,0,38,65,0, -90,68,0,38,65" )
-time.sleep(2)
-goToBodyPos( 2000, "0,10,65,0,38,65,0, -90,90,0,38,65" )
-time.sleep(2)
-command("stand")
-time.sleep(1)
-#command("crouch")
-#time.sleep)
+# Prep: shift weight, start lifting FR
+goToBodyPos(500, "-9,33,64,-9,33,64,-9,39,73,-9,33,64")
+time.sleep(0.4)
+goToBodyPos(500, "-9,33,64,-9,33,64,-9,56,102,-9,33,64")
+time.sleep(0.4)
+
+# Raise paw
+goToBodyPos(800, "-9,33,64,-9,33,64,-9,-21,112,-9,33,64")
+time.sleep(0.9)
+
+# High-five taps
+goToBodyPos(600, "-9,33,64,-9,33,64,-9,-17,89,-9,33,64")
+time.sleep(0.7)
+goToBodyPos(600, "-9,33,64,-9,33,64,-9,-21,112,-9,33,64")
+time.sleep(0.7)
+goToBodyPos(600, "-9,33,64,-9,33,64,-9,-17,89,-9,33,64")
+time.sleep(0.7)
+
+# Settle and sit
+goToBodyPos(600, "-9,33,64,-9,33,64,-9,-21,112,-9,33,64")
+time.sleep(0.7)
+goToBodyPos(500, "-9,33,64,-9,33,64,-9,56,102,-9,33,64")
+time.sleep(0.4)
+goToBodyPos(500, "-9,33,64,-9,33,64,-9,39,73,-9,33,64")
+time.sleep(0.4)
+
 command("sit")
+time.sleep(0.5)
