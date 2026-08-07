@@ -536,6 +536,51 @@
                 max-width: 100%;
             }
         }
+
+        .yolo-dets {
+            margin: 8px 10px 4px;
+            padding: 8px 10px;
+            background: #f3f3f3;
+            border: 1px solid #bbb;
+            text-align: left;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .yolo-dets-title {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .yolo-dets-meta {
+            color: #555;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .yolo-dets table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .yolo-dets th,
+        .yolo-dets td {
+            border-bottom: 1px solid #ddd;
+            padding: 3px 4px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .yolo-dets th {
+            font-size: 11px;
+            color: #333;
+        }
+
+        .yolo-dets .empty {
+            color: #666;
+            font-style: italic;
+        }
         
         .ttbtn {
             padding: 5px;
@@ -1304,6 +1349,82 @@
             return yoloMacBase() + "/annotated.jpg?ctr=" + ctrVal;
         }
 
+        var yolodettimeout = null;
+        var lastYoloDetFetch = 0;
+
+        function renderYoloDetections(payload) {
+            var box = did("yolo-dets");
+            var body = did("yolo-dets-body");
+            var meta = did("yolo-dets-meta");
+            if (!box || !body)
+                return;
+            box.style.display = "";
+            var dets = (payload && payload.detections) ? payload.detections : [];
+            var statusBits = [];
+            if (payload) {
+                statusBits.push(payload.model_loaded ? "model ready" : "model loading");
+                statusBits.push(payload.camera_ok ? "camera ok" : "waiting for camera");
+                statusBits.push(dets.length + " object" + (dets.length === 1 ? "" : "s"));
+            }
+            if (meta)
+                meta.textContent = statusBits.join(" · ");
+
+            if (!dets.length) {
+                body.innerHTML = "<tr><td colspan='4' class='empty'>No objects in this frame</td></tr>";
+                return;
+            }
+
+            var h = "";
+            for (var i = 0; i < dets.length; i++) {
+                var d = dets[i];
+                var name = d.hierarchy_category || d.original_class || "?";
+                if (d.original_class && d.hierarchy_category && d.original_class !== d.hierarchy_category)
+                    name = d.hierarchy_category + " (" + d.original_class + ")";
+                var conf = (typeof d.confidence === "number") ? d.confidence.toFixed(1) + "%" : "--";
+                var cx = (typeof d.center_x === "number") ? d.center_x.toFixed(1) : "--";
+                var cy = (typeof d.center_y === "number") ? d.center_y.toFixed(1) : "--";
+                h += "<tr><td>" + name + "</td><td>" + conf + "</td><td>" + cx + "</td><td>" + cy + "</td></tr>";
+            }
+            body.innerHTML = h;
+        }
+
+        function pollYoloDetections() {
+            if (yolodettimeout)
+                window.clearTimeout(yolodettimeout);
+
+            if (!config["camera"] || !camon) {
+                var box = did("yolo-dets");
+                if (box)
+                    box.style.display = "none";
+                yolodettimeout = window.setTimeout(pollYoloDetections, 800);
+                return;
+            }
+
+            var url = yoloMacBase() + "/detections.json?t=" + Date.now();
+            lastYoloDetFetch = Date.now();
+            if (window.fetch) {
+                fetch(url, { cache: "no-store", mode: "cors" })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) { renderYoloDetections(data); })
+                    .catch(function() {
+                        var meta = did("yolo-dets-meta");
+                        var body = did("yolo-dets-body");
+                        var box = did("yolo-dets");
+                        if (box)
+                            box.style.display = "";
+                        if (meta)
+                            meta.textContent = "Mac YOLO unreachable";
+                        if (body)
+                            body.innerHTML = "<tr><td colspan='4' class='empty'>No detection data</td></tr>";
+                    })
+                    .finally(function() {
+                        yolodettimeout = window.setTimeout(pollYoloDetections, 300);
+                    });
+            } else {
+                yolodettimeout = window.setTimeout(pollYoloDetections, 800);
+            }
+        }
+
         function reloadcamimg() {
             if (camtimeout)
                 window.clearTimeout(camtimeout);
@@ -1330,6 +1451,7 @@
             if (config["camera"])
                 camtimeout = window.setTimeout(getcamimg, 1000);
 
+            yolodettimeout = window.setTimeout(pollYoloDetections, 500);
             statustimeout = window.setTimeout(getStatus, 200);
         }
 
@@ -2684,9 +2806,8 @@
         </tr>
         <tr>
             <td style='width:25%'>
-                <div class="btn right-edge" style="padding:3px" onclick="scmd('m,o')">
-                  Open
-                  <div style='font-size:10px;'>Mouth</div>
+                <div class="btn right-edge" style="padding:3px" onclick="runsequence('wag')">
+                  Wag
                 </div>
             </td>
             <td style='width:25%'>
@@ -2703,6 +2824,27 @@
             <td style='width:25%'>
                 <div class="btn left-edge" style="" onclick="runsequence('highfive')">
                   High Five
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4" style="padding:0">
+                <div id="yolo-dets" class="yolo-dets" style="display:none">
+                    <div class="yolo-dets-title">YOLO detections (per frame)</div>
+                    <div id="yolo-dets-meta" class="yolo-dets-meta">Waiting for Mac…</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Object</th>
+                                <th>Sure %</th>
+                                <th>Center X</th>
+                                <th>Center Y</th>
+                            </tr>
+                        </thead>
+                        <tbody id="yolo-dets-body">
+                            <tr><td colspan="4" class="empty">No detection data</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </td>
         </tr>
