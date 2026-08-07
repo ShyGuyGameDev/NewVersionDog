@@ -61,6 +61,28 @@
             text-align:center;
         }
 
+        /* Main yellow command grid: equal-height buttons */
+        table.main-cmds td {
+            vertical-align: stretch;
+        }
+
+        table.main-cmds .btn {
+            box-sizing: border-box;
+            min-height: 64px;
+            height: 64px;
+            margin-bottom: 12px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.15;
+        }
+
+        table.main-cmds .btn > div {
+            line-height: 1.1;
+        }
+
         .btn:hover {
             color: white;
         }
@@ -2753,17 +2775,17 @@
         </div>
     </div>
 
-    <table style="margin:10px;width:calc(100% - 20px)">
+    <table class="main-cmds" style="margin:10px;width:calc(100% - 20px)">
         <tr>
             <td style='width:25%'>
-              <div id="stop-sc" class="btn right-edge" style="padding:3px"
+              <div id="stop-sc" class="btn right-edge"
                    onclick="scmd('stop')">
                 Stop
                 <div style='font-size:10px; color:red'>Disable</div>
                 </div>
             </td>
             <td style='width:25%'>
-              <div id="go-sc" class="btn left-edge" style="padding:3px"
+              <div id="go-sc" class="btn left-edge"
                    onclick="scmd('go')">
                     Go
                     <div style='font-size:10px;color:green'>Enable</div>
@@ -2784,45 +2806,45 @@
         </tr>
         <tr>
             <td style='width:25%'>
-                <div id="walk-sc" class="btn right-edge" style="" onclick="showgaitdlg('walk')">
+                <div id="walk-sc" class="btn right-edge" onclick="showgaitdlg('walk')">
                     Walk
                 </div>
             </td>
             <td style='width:25%'>
-                <div id="trot-sc" class="btn left-edge" style="" onclick="showgaitdlg('trot')">
+                <div id="trot-sc" class="btn left-edge" onclick="showgaitdlg('trot')">
                   Trot
                 </div>
             </td>
             <td style='width:25%'>
-                <div id="tall-sc" class="btn right-edge" style="" onclick="scmd('tall')">
+                <div id="tall-sc" class="btn right-edge" onclick="scmd('tall')">
                     Tall
                 </div>
             </td>
             <td style='width:25%'>
-                <div id="crouch-sc" class="btn left-edge" style="" onclick="scmd('crouch')">
+                <div id="crouch-sc" class="btn left-edge" onclick="scmd('crouch')">
                   Crouch
                 </div>
             </td>
         </tr>
         <tr>
             <td style='width:25%'>
-                <div class="btn right-edge" style="padding:3px" onclick="runsequence('wag')">
+                <div class="btn right-edge" onclick="runsequence('wag')">
                   Wag
                 </div>
             </td>
             <td style='width:25%'>
-                <div class="btn left-edge" style="" onclick="runsequence('paw')">
+                <div class="btn left-edge" onclick="runsequence('paw')">
                   Paw
                 </div>
             </td>
             <td style='width:25%'>
-                <div class="btn right-edge" style="padding:3px" onclick="runsequence('lookdown')">
+                <div class="btn right-edge" onclick="runsequence('lookdown')">
                   Look Down
                 </div>
             </td>
             <td style='width:25%'>
-                <div class="btn left-edge" style="" onclick="runsequence('highfive')">
-                  High Five
+                <div class="btn left-edge" onclick="runsequence('paw-2')">
+                  Paw-2
                 </div>
             </td>
         </tr>
