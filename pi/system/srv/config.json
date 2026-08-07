@@ -5,5 +5,7 @@
     "armtype": "basic",
     "mosfet": false,
     "evotype" : "evodog",
-    "arduino" : "atmega328p"
+    "arduino" : "atmega328p",
+    "yolo_mac_host": "10.1.1.126",
+    "yolo_mac_port": 8010
 }

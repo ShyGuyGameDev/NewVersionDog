@@ -985,6 +985,16 @@
                     hide("camonbtn");
                 }
 
+                // If Mac YOLO host is missing from config.json, try yolo_mac.json.
+                if (!config["yolo_mac_host"]) {
+                    execAjaxSimpleJson("/yolo_mac.json", "", function(y) {
+                        if (y && y.host)
+                            config["yolo_mac_host"] = y.host;
+                        if (y && y.port)
+                            config["yolo_mac_port"] = y.port;
+                    }, function() {});
+                }
+
                 start();
             }
             // initPositionSliders();
@@ -1115,17 +1125,46 @@
                 hide("camask");
                 did("camdiv").style.display = "";
                 hide("power");
+                // Camera already producing frames — wake Mac YOLO for the right panel.
+                if (typeof startMacYolo === "function")
+                    startMacYolo();
+                camon = true;
             }
             img_first_fetch = false;
         }
 
         var camon = false; //by default
+        function yoloMacBase() {
+            var host = (config && config["yolo_mac_host"]) || "10.1.1.126";
+            var port = (config && config["yolo_mac_port"]) || 8010;
+            var proto = window.location.protocol || "http:";
+            if (proto === "file:")
+                proto = "http:";
+            return proto + "//" + host + ":" + port;
+        }
+
+        function startMacYolo() {
+            // Fire-and-forget: ask Mac YOLO agent to stay active / confirm ready.
+            // Uses Image beacon so CORS is not required; also try fetch.
+            var url = yoloMacBase() + "/start?t=" + Date.now();
+            try {
+                var img = new Image();
+                img.src = url;
+            } catch (e) {}
+            try {
+                if (window.fetch) {
+                    fetch(url, { mode: "no-cors", cache: "no-store" }).catch(function() {});
+                }
+            } catch (e) {}
+        }
+
         function camerapwr(on) {
             hide("camask");
             if (on) {
                 did("camdiv").style.display = "";
                 hide("power");
                 showError("Turning camera on, wait a few seconds");
+                startMacYolo();
             } else {
                 did("camdiv").style.display = "none";
                 hide("power");
@@ -1261,10 +1300,8 @@
         var ctr = 0;
 
         function annotatedCamUrl(ctrVal) {
-            // Annotated feed is served directly by cam.py (port from camconfig, default 8000).
-            var host = window.location.hostname || "localhost";
-            var proto = window.location.protocol || "http:";
-            return proto + "//" + host + ":8000/annotated.jpg?ctr=" + ctrVal;
+            // Annotated feed comes from Mac YOLO (dog_yolo_mac.py), not the Pi.
+            return yoloMacBase() + "/annotated.jpg?ctr=" + ctrVal;
         }
 
         function reloadcamimg() {
@@ -2169,8 +2206,8 @@
                 <img id='camimg' src="/cameraimg" onerror='reloadcamimg()' onload='oncamimgload()' alt="Raw camera">
             </div>
             <div class="cam-panel">
-                <div class="cam-panel-label">Camera (raw mirror — YOLO on Mac)</div>
-                <img id='camimgann' src="" onerror='reloadcamimg()' alt="Camera mirror">
+                <div class="cam-panel-label">Camera (YOLO)</div>
+                <img id='camimgann' src="" onerror='reloadcamimg()' alt="YOLO annotated camera">
             </div>
         </div>
     </div>

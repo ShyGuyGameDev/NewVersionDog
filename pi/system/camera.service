@@ -9,6 +9,8 @@ After=network.target sysinit.target network-online.target
 
 [Service]
 ExecStart=/usr/bin/python3 /home/pi/system/cam.py
+# Ping Mac YOLO agent when the camera comes up (best-effort; Mac must be awake).
+ExecStartPost=-/usr/bin/curl -s -m 2 "http://10.1.1.126:8010/start" -o /dev/null
 WorkingDirectory=/home/pi/system
 StandardOutput=inherit
 StandardError=inherit
