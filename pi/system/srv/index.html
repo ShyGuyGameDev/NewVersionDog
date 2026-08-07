@@ -2136,9 +2136,9 @@
                 <td></td><td><div class='btn bot-edge' onclick="gaitfwd()">Forward</div></td><td></td>
               </tr>
               <tr>
-                <td style="width:30%"><div class='btn right-edge' onclick="scmd('gl')">Left</div></td>
+                <td style="width:30%"><div id="gait-left-btn" class='btn right-edge' onclick="scmd('gl')">Left</div></td>
                 <td><div class='btn left-edge right-edge' onclick="scmd('gs')">Straight</div></td>
-                <td style="width:30%"><div class='btn left-edge' onclick="scmd('gr')">Right</div></td>
+                <td style="width:30%"><div id="gait-right-btn" class='btn left-edge' onclick="scmd('gr')">Right</div></td>
               </tr>
               <tr>
                <td></td><td><div class='btn top-edge' onclick="gaitbwd()">Back</div></td><td></td>
@@ -4343,6 +4343,7 @@
                 execAjaxSimpleJson(action + encodeURIComponent(command), "",
                     onResp, networkError);
             console.log("sending " + action + encodeURIComponent(command));
+            noteGaitTurnCmd(command);
 
             function onResp(r) {
                 if (r.error == 0) {
@@ -4365,6 +4366,30 @@
             }
         }
 var curgait = "";
+// Signed turn bias press count: >0 = right, <0 = left, 0 = straight.
+// Tracks gl/gr/gs from this page (firmware does not report bias back).
+var gaitTurnBias = 0;
+function updateGaitTurnButtons()
+{
+    var leftBtn = did("gait-left-btn");
+    var rightBtn = did("gait-right-btn");
+    if (!leftBtn || !rightBtn)
+        return;
+    leftBtn.innerHTML = gaitTurnBias < 0 ? ("Left " + (-gaitTurnBias)) : "Left";
+    rightBtn.innerHTML = gaitTurnBias > 0 ? ("Right " + gaitTurnBias) : "Right";
+}
+function noteGaitTurnCmd(cmd)
+{
+    if (cmd == "gl")
+        gaitTurnBias -= 1;
+    else if (cmd == "gr")
+        gaitTurnBias += 1;
+    else if (cmd == "gs")
+        gaitTurnBias = 0;
+    else
+        return;
+    updateGaitTurnButtons();
+}
 function gaitfwd()
 {
     scmd( curgait );
@@ -4377,6 +4402,7 @@ function showgaitdlg( g )
 {
     curgait = g;
     did("gaitname").innerHTML = curgait[0].toUpperCase() + curgait.slice(1);
+    updateGaitTurnButtons();
     show( "gaitdlg" );
 }
 
