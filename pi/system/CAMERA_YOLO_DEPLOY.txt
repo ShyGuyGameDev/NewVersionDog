@@ -1,32 +1,24 @@
-NewVersionDog camera + YOLO11n deploy notes
-===========================================
+NewVersionDog camera + Mac YOLO deploy notes
+============================================
 
-Files:
+Pi role: raw camera only (no torch / ultralytics on this board).
+Mac role: run YOLO11n overlays via dog_yolo_mac.py
+
+Pi files:
   /home/pi/system/cam.py
-  /home/pi/system/IRLClassification.py
   /home/pi/system/camconfig.json
-  /home/pi/system/yolo11n.pt          (model weights)
-  /home/pi/system/srv/index.html      (dual camera panels)
+  /home/pi/system/srv/index.html
 
-Install (Python 3, on the Pi):
-  pip3 install ultralytics opencv-python numpy
-  # Also install a Raspberry Pi–compatible torch CPU wheel if ultralytics does not pull one.
+Mac file:
+  YOLOv8 Working/dog_yolo_mac.py
 
-Model:
-  Place yolo11n.pt in /home/pi/system/
-  Or let ultralytics download it on first run (needs network).
-
-Restart:
+Pi restart:
   sudo systemctl restart camera
 
-Verify:
-  curl -I http://localhost:8000/frame.jpg
-  curl -I http://localhost:8000/annotated.jpg
-  curl http://localhost:8000/detections.json
+Mac run:
+  cd "YOLOv8 Working"
+  source ../.venv/bin/activate
+  python dog_yolo_mac.py
 
-Web UI:
-  Left panel  = raw (/cameraimg proxy)
-  Right panel = annotated (http://<pi-host>:8000/annotated.jpg)
-
-Movement integration later:
-  Poll http://localhost:8000/detections.json for latest hierarchy detections.
+Safe Pi shutdown before cutting power:
+  ssh pi@10.1.1.146 'sudo shutdown -h now'

@@ -1,13 +1,11 @@
 [Unit]
-Description=camera (raw + YOLO11n annotated streams)
+Description=camera (raw MJPEG; YOLO runs on Mac)
 Requires=network-online.target
 After=network.target sysinit.target network-online.target
 
-# Deploy (once on the Pi):
-#   pip3 install ultralytics opencv-python numpy
-#   place yolo11n.pt in /home/pi/system/  (or allow ultralytics to download it)
-#   sudo systemctl restart camera
-# Endpoints: :8000/frame.jpg, /annotated.jpg, /detections.json
+# Raw only on this Pi — no ultralytics/torch required.
+# Mac: YOLOv8 Working/dog_yolo_mac.py pulls http://<pi>:8000/frame.jpg
+# Restart: sudo systemctl restart camera
 
 [Service]
 ExecStart=/usr/bin/python3 /home/pi/system/cam.py
