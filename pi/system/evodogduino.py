@@ -22,12 +22,63 @@ quitted = False
 ser = None
 ser_port = None
 ser_baud = None
+#when True, infothread skips publishing status polls so go/poses are not dropped
+pause_status_polls = False
+#UI Balance OFF did not unstick this dog; do not auto-send A/N after go
+#(re-enable only if a fresh serialtest Stage B shows serial alive + balance-only freeze)
+AUTO_BALANCE_OFF_AFTER_GO = False
+#created early so deferred balance-off threads can acquire it
+lock = threading.Lock()
 
 #baud rates used across Evodyne dog/arm boards; probe all until firmware answers
 BAUD_CANDIDATES = [ 500000, 115200, 250000, 57600 ]
 FALLBACK_BAUD = 500000
 
 #roscmd = {}
+
+def openSerial( port, baudrate ):
+    """
+    Open a serial port without toggling DTR/RTS when possible.
+    Reopening with DTR can reset some boards and wipe calibration; on this
+    dog reopen often does NOT reset, so reconnect cannot heal a wedge anyway.
+    """
+    timeout = 0.1
+    write_timeout = 0.5
+    try:
+        s = serial.Serial(
+            port = port,
+            baudrate = baudrate,
+            timeout = timeout,
+            write_timeout = write_timeout,
+            dsrdtr = False,
+            rtscts = False,
+        )
+    except TypeError:
+        #older pyserial: fewer kwargs
+        s = serial.Serial( port, baudrate, timeout = timeout, write_timeout = write_timeout )
+    try:
+        s.setDTR( False )
+        s.setRTS( False )
+    except:
+        pass
+    return s
+
+def isHardDisconnect( exc ):
+    """True only when the device likely disappeared; write timeouts are soft."""
+    global ser
+    msg = str( exc ).lower()
+    if "timeout" in msg:
+        return False
+    try:
+        if ser is None or not ser.isOpen():
+            return True
+    except:
+        return True
+    #typical Linux disappeared-device errors
+    for needle in ( "no such file", "device", "disappear", "errno 5", "errno 6", "i/o error" ):
+        if needle in msg:
+            return True
+    return False
 
 def send ( string ):
     global ser
@@ -46,14 +97,24 @@ def send ( string ):
     try:
         #print "sending", string
         ser.write (string)
-    except:
-        print "Serial write failed, reconnecting"
-        reconnect()
-        try:
-            #retry once instead of silently dropping the command
-            ser.write (string)
-        except:
-            print "Command dropped after reconnect"
+    except Exception as e:
+        print "Serial write failed:", e
+        if isHardDisconnect( e ):
+            print "Hard disconnect detected, reconnecting"
+            reconnect()
+            try:
+                if ser is not None:
+                    ser.write( string )
+            except:
+                print "Command dropped after reconnect"
+        else:
+            #soft-retry the same open handle; do NOT close/reopen on timeout
+            #(reconnect storms during go stand-up make the dog look permanently stuck)
+            try:
+                time.sleep( 0.05 )
+                ser.write( string )
+            except Exception as e2:
+                print "Soft retry failed, dropping command:", e2
 
 def sendCommand( cmd ):
     send( cmd + "\n" )
@@ -74,21 +135,19 @@ def listSerialPorts():
 
 def probePort( port, baudrate ):
     """
-    Open port@baud, wait for Arduino auto-reset, send 'i', and look for an
-    'info' reply. Returns an open Serial on success, or None.
+    Open port@baud, wait briefly, send 'i', and look for an 'info' reply.
+    Returns an open Serial on success, or None.
     """
-    timeout = 0.1
-    write_timeout = 0.5
     s = None
     try:
         print "Trying ", port, "@", baudrate
-        s = serial.Serial( port, baudrate, timeout = timeout, write_timeout = write_timeout )
+        s = openSerial( port, baudrate )
     except Exception as e:
         print "Could not open ", port, "@", baudrate, ":", e
         return None
     try:
-        #opening toggles DTR and resets the Arduino; wait for it to boot
-        time.sleep( 2.5 )
+        #this board often does not auto-reset on open; short settle is enough
+        time.sleep( 1.0 )
         try:
             s.flushInput()
         except:
@@ -121,7 +180,7 @@ def connectFallback( ports ):
     for port in ports:
         try:
             print "Fallback open ", port, "@", FALLBACK_BAUD
-            ser = serial.Serial( port, FALLBACK_BAUD, timeout = 0.1, write_timeout = 0.5 )
+            ser = openSerial( port, FALLBACK_BAUD )
             ser_port = port
             ser_baud = FALLBACK_BAUD
             print "OPENED (no handshake)", port, "@", FALLBACK_BAUD
@@ -169,6 +228,11 @@ def connect():
     connectFallback( ports )
 
 def reconnect():
+    """
+    Full reopen only for hard disconnects (device gone). Prefer soft-retry
+    in send() for ordinary write timeouts so we do not thrash the UART
+    during go stand-up.
+    """
     global ser
     try:
         if ser is not None:
@@ -179,10 +243,8 @@ def reconnect():
     connect()
     if ser is None:
         return
-    #reopening the port resets the Arduino (DTR toggle): servos return to
-    #raw zero and calibration is wiped. Wait for the reboot, then restore
-    #the offsets so subsequent positions are correct again.
-    #probePort already waited ~2.5s; short pause then restore calibration
+    #if the adapter did reset, calibration is wiped — restore offsets.
+    #if it did not reset, re-sending e: is harmless.
     time.sleep(0.5)
     sendOffsets()
 
@@ -257,66 +319,117 @@ def readInfoLine():
         pass
     return ""
 
-#this dog's IMU appears dead; balance mode (default on at 'go') freezes
-#the motion engine so sit/stand/w poses are ignored. Match the webpage's
-#balanceOff() and disable balance ONCE after each successful go.
-#Do NOT spam A/N before every command: these letters may toggle or
-#persist more firmware state than "balance off", and repeated sends are
-#suspected of leaving the firmware in a bad saved state.
-def disableBalanceAfterGo():
-    #the firmware appears to EAT commands sent during the go stand-up
-    #transition. In the serial test that worked, A/N went out ~10s after
-    #go. Wait for the transition to finish, then disable balance, then
-    #give the firmware a beat before queued pose commands flow through.
-    #(we hold the command lock, so webpage presses queue behind this)
-    time.sleep( 3.5 )
+def infoJointVals( line ):
+    """Parse joint target fields from an info CSV line; None if unusable."""
+    pieces = line.split( "," )
+    if ( len(pieces) < 16 ):
+        return None
     try:
-        ser.write( "A\n" )
-        ser.write( "N\n" )
-        print "balance disabled after go (dead IMU freezes poses otherwise)"
+        return [ float(x) for x in pieces[4:16] ]
+    except:
+        return None
+
+def offsetsRegistered( before_line, after_line ):
+    """
+    True if calibration is registered enough that 'go' is safe.
+    Refuse when joint targets are still all-zero after e: (the wedge case).
+    Accept when e: changes the info line, or when targets were already
+    non-zero (offsets applied at boot / earlier reconnect).
+    """
+    before = infoJointVals( before_line )
+    after = infoJointVals( after_line )
+    if after is None:
+        return False
+    after_nonzero = any( abs( v ) > 0.5 for v in after )
+    if not after_nonzero:
+        #still raw zero after sending e: — offsets did not stick
+        return False
+    if before is not None:
+        if any( abs( a - b ) > 0.5 for a, b in zip( after, before ) ):
+            return True
+        #no change, but already non-zero before e: — calibrated earlier
+        if any( abs( v ) > 0.5 for v in before ):
+            return True
+        return False
+    return True
+
+#this dog's IMU appears dead; balance mode (default on at 'go') can freeze
+#poses. An earlier serial test needed A/N ~10s after go. AUTO_BALANCE_OFF
+#is currently False because UI Balance OFF no longer unsticks the dog —
+#auto A/N under the lock was more likely to hurt than help. If Stage B
+#later shows serial still answers after go and only balance freezes poses,
+#set AUTO_BALANCE_OFF_AFTER_GO = True (uses ~10s delay, deferred off-lock).
+def disableBalanceAfterGo():
+    #runs in a background thread AFTER listener releases the lock
+    time.sleep( 10.0 )
+    #confirm firmware still answers before poking A/N
+    line = ""
+    try:
+        lock.acquire()
+        try:
+            line = readInfoLine()
+            if not line:
+                print "skipping balance-off: firmware silent after go (wedged?)"
+                return
+            ser.write( "A\n" )
+            ser.write( "N\n" )
+            print "balance disabled after go (dead IMU freezes poses otherwise)"
+        finally:
+            lock.release()
     except:
         print "could not disable balance after go"
-    time.sleep( 0.5 )
+        try:
+            lock.release()
+        except:
+            pass
+
+def scheduleBalanceOffAfterGo():
+    if not AUTO_BALANCE_OFF_AFTER_GO:
+        print "auto balance-off after go disabled (set AUTO_BALANCE_OFF_AFTER_GO=True to re-enable)"
+        return
+    t = threading.Thread( target = disableBalanceAfterGo, name = "balanceOff" )
+    t.daemon = True
+    t.start()
 
 #the firmware wedges permanently (until power cycle) if 'go' arrives
-#before its calibration offsets are registered. Verify the offsets took
-#effect (joint targets in the info line become non-zero) before sending
-#'go'. If we cannot verify, refuse: a dog that ignores 'go' is annoying,
-#a wedged dog is dead until someone flips the switch.
+#before its calibration offsets are registered. Verify e: changed the
+#info joint targets before sending go. If we cannot verify, refuse.
 def safeGo():
-    if ( offsetsAllZero() ):
-        #cannot verify against all-zero calibration; send and hope
-        print "go: offsets are all zero, sending go unverified"
-        try:
-            ser.write( "go\n" )
-            print "go sent (unverified)"
-            disableBalanceAfterGo()
-        except:
-            print "go dropped (serial error)"
-        return
-    for attempt in range( 3 ):
-        sendOffsets()
-        time.sleep( 0.3 )
-        line = readInfoLine()
-        pieces = line.split( "," )
-        if ( len(pieces) >= 16 ):
+    global pause_status_polls
+    pause_status_polls = True
+    try:
+        if ( offsetsAllZero() ):
+            #cannot verify against all-zero calibration; send and hope
+            print "go: offsets are all zero, sending go unverified"
             try:
-                vals = [ float(x) for x in pieces[4:16] ]
+                ser.write( "go\n" )
+                print "go sent (unverified)"
+                scheduleBalanceOffAfterGo()
             except:
-                vals = []
-            if ( any( v != 0 for v in vals ) ):
+                print "go dropped (serial error)"
+            return
+        for attempt in range( 3 ):
+            before = readInfoLine()
+            sendOffsets()
+            time.sleep( 0.3 )
+            after = readInfoLine()
+            if offsetsRegistered( before, after ):
                 try:
                     ser.write( "go\n" )
                     print "go sent (offsets verified)"
-                    disableBalanceAfterGo()
+                    print "  info before e:", before
+                    print "  info after e:", after
+                    scheduleBalanceOffAfterGo()
                 except:
                     print "go dropped (serial error)"
                 return
-        print "go: offsets not registered yet (info: " + line + "), retrying"
-        time.sleep( 0.5 )
-    print "REFUSING to send go: firmware never registered offsets."
-    print "Sending go now would wedge it until a power cycle."
-    print "Power-cycle the dog, wait 5s, then try again."
+            print "go: offsets not registered yet (before: " + before + " after: " + after + "), retrying"
+            time.sleep( 0.5 )
+        print "REFUSING to send go: firmware never registered offsets."
+        print "Sending go now would wedge it until a power cycle."
+        print "Power-cycle the dog, wait 5s, then try again."
+    finally:
+        pause_status_polls = False
 
 connect()
 time.sleep(2)
@@ -353,11 +466,14 @@ def getXYZPos( infostr ):
 def infothread():
         global selfpub
         global quitted
+        global pause_status_polls
 
         print "info thread started"
         time.sleep(1)
         while quitted == False and not rospy.is_shutdown():
-            selfpub.publish( String('{"command":"action","v1":"k"}') )
+            #skip polls during safeGo so the tiny ROS queue does not drop poses
+            if not pause_status_polls:
+                selfpub.publish( String('{"command":"action","v1":"k"}') )
             time.sleep(0.2)
         print "info thread quitting"
 
@@ -385,8 +501,6 @@ def sysListener(ros_data):
             send( "off\n" ) #turn arm power off
             rospy.signal_shutdown("Shutting down" )
             sys.exit()
-
-lock = threading.Lock()
 
 def processCommand( str_ ):
     #cmd = str_
@@ -546,10 +660,10 @@ def listener(ros_data):
         lock.release()
 
 rospy.init_node("myListener")
-rospy.Subscriber("/evocar/pub", String, listener, queue_size=5)
-rospy.Subscriber("/evocar/system", String, sysListener, queue_size=5)
-pub = rospy.Publisher('/evocar/status', String, queue_size=5)
-selfpub = rospy.Publisher('/evocar/pub', String, queue_size=5)
+rospy.Subscriber("/evocar/pub", String, listener, queue_size=50)
+rospy.Subscriber("/evocar/system", String, sysListener, queue_size=50)
+pub = rospy.Publisher('/evocar/status', String, queue_size=50)
+selfpub = rospy.Publisher('/evocar/pub', String, queue_size=50)
 print "evodogduino running"
 t = threading.Thread(target=infothread, name="info")
 t.daemon = True
