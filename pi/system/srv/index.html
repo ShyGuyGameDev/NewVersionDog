@@ -2382,7 +2382,7 @@
               </tr>
               <tr>
                 <td style="width:30%"><div id="gait-left-btn" class='btn right-edge' onclick="scmd('gl')">Left</div></td>
-                <td><div class='btn left-edge right-edge' onclick="scmd('gs')">Straight</div></td>
+                <td><div class='btn left-edge right-edge' onclick="gaitStraight()">Straight</div></td>
                 <td style="width:30%"><div id="gait-right-btn" class='btn left-edge' onclick="scmd('gr')">Right</div></td>
               </tr>
               <tr>
@@ -4629,9 +4629,11 @@
             }
         }
 var curgait = "";
-// Signed turn bias press count: >0 = right, <0 = left, 0 = straight.
+// Signed turn bias press count: >0 = right, <0 = left, 0 = firmware straight.
 // Tracks gl/gr/gs from this page (firmware does not report bias back).
 var gaitTurnBias = 0;
+// This dog drifts left; "normal" Forward should match Right bias = 1.
+var GAIT_NORMAL_RIGHT_BIAS = 1;
 function updateGaitTurnButtons()
 {
     var leftBtn = did("gait-left-btn");
@@ -4653,12 +4655,30 @@ function noteGaitTurnCmd(cmd)
         return;
     updateGaitTurnButtons();
 }
+function applyNormalWalkBias()
+{
+    // If turn is unset, bake in the normal right bias before gaiting.
+    // Leave any intentional Left/Right steering alone.
+    if (gaitTurnBias != 0)
+        return;
+    for (var i = 0; i < GAIT_NORMAL_RIGHT_BIAS; i++)
+        scmd("gr");
+}
+function gaitStraight()
+{
+    // "Straight" for this dog = right bias 1 (same as normal walk).
+    scmd("gs");
+    for (var i = 0; i < GAIT_NORMAL_RIGHT_BIAS; i++)
+        scmd("gr");
+}
 function gaitfwd()
 {
+    applyNormalWalkBias();
     scmd( curgait );
 }
 function gaitbwd()
 {
+    applyNormalWalkBias();
     scmd( curgait + "b" );
 }
 function showgaitdlg( g )
