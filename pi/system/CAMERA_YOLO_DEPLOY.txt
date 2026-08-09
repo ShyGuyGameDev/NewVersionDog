@@ -2,7 +2,8 @@ NewVersionDog camera + Mac YOLO deploy notes
 ============================================
 
 Pi role: raw camera only (no torch / ultralytics on this board).
-Mac role: run YOLO11n, serve annotated JPEGs for the website right panel.
+Mac role: run YOLO11n, serve annotated JPEGs for the website right panel,
+          and optionally drive object-follow gait via Pi /command.
 
 Architecture
 ------------
@@ -10,11 +11,55 @@ Architecture
                                  -->  Mac :8010/annotated.jpg
                                  -->  Website right panel (#camimgann)
 
+  Object follow (optional, Mac-driven):
+    Mac dog_yolo_mac.py
+      --> pick best detection matching FOLLOW_TARGET
+      --> hysteresis steer → gait bias 0 / 1 / 2 (right presses)
+      --> HTTP GET http://<pi>:9072/command?cmd=direct&v1=gs|gr|trot|stop
+      --> Pi web stack → ROS → evodogduino → firmware
+
   Website left panel  = Pi raw (/cameraimg)
   Website right panel = Mac YOLO (http://<mac-ip>:8010/annotated.jpg)
 
   When "Camera On" is pressed (or camera.service starts), the Pi/website
   hits http://<mac-ip>:8010/start so the Mac agent stays active.
+
+FOLLOW_TARGET (change chased object)
+------------------------------------
+  In YOLOv8 Working/dog_yolo_mac.py set one variable:
+
+    FOLLOW_TARGET = "person"   # COCO class or hierarchy category
+
+  Examples: "person", "sports ball", "ball", "dog"
+  Matching is case-insensitive against original_class OR hierarchy_category.
+  No other code changes needed to switch the followed object.
+
+Follow steer rules
+------------------
+  x = center_x / frame_width
+  Right  x >= 0.60     → bias 2  (gs + gr gr)
+  Left   x <= 0.40     → bias 0  (gs)
+  Center 0.44 < x < 0.56 → bias 1 (gs + gr)  # normal right bias
+  Hysteresis bands 0.40–0.44 and 0.56–0.60 keep the last zone
+  Trot (FOLLOW_GAIT) while target visible or seen within last 0.8 s; else stop
+
+Enable follow
+-------------
+  # Follow is ON by default (robot web stack must be up so /command works):
+  python dog_yolo_mac.py --no-window
+
+  # Start without following:
+  python dog_yolo_mac.py --no-follow --no-window
+
+  # Toggle while running:
+  curl -s http://127.0.0.1:8010/follow/on
+  curl -s http://127.0.0.1:8010/follow/off
+  curl -s http://127.0.0.1:8010/follow/status
+
+  Process exit / follow off sends stop once.
+
+  Optional:
+    --pi-command-base http://10.1.1.146:9072/command
 
 Pi files (deploy to /home/pi/system/):
   cam.py
@@ -25,14 +70,15 @@ Pi files (deploy to /home/pi/system/):
   srv/yolo_mac.json        (optional fallback)
 
 Mac files:
-  YOLOv8 Working/dog_yolo_mac.py      — pull + annotate + HTTP serve
+  YOLOv8 Working/dog_yolo_mac.py      — pull + annotate + HTTP serve + follow
   YOLOv8 Working/dog_yolo_agent.py    — LaunchAgent supervisor
   YOLOv8 Working/install_yolo_agent.sh
   YOLOv8 Working/com.spatialai.dogyolo.plist
 
 Current LAN defaults
 --------------------
-  Pi:  10.1.1.146:8000
+  Pi:  10.1.1.146:8000    (camera)
+  Pi:  10.1.1.146:9072    (website + /command gait)
   Mac: 10.1.1.126:8010
 
   If the Mac IP changes, update:
@@ -48,19 +94,39 @@ Mac setup (once)
   chmod +x install_yolo_agent.sh
   ./install_yolo_agent.sh
 
-  # Or run manually:
+  # Or run manually (follow on by default):
   source ../.venv/bin/activate
   python dog_yolo_mac.py --no-window
 
   # Check:
   curl -s http://127.0.0.1:8010/health
+  curl -s http://127.0.0.1:8010/follow/status
   open http://127.0.0.1:8010/annotated.jpg
+
+One-time: enable boot defaults (Pi)
+-----------------------------------
+  After power cycle you should NOT need to manually start services.
+  Copy this tree to /home/pi/system (or at least the .service files + script), then:
+
+    cd /home/pi/system
+    chmod +x enable_boot_services.sh
+    ./enable_boot_services.sh
+
+  That enables: rosmasterpi, evoduino, evocar, camera (start on every boot).
+
+  Mac YOLO LaunchAgent (login default):
+    cd "YOLOv8 Working"
+    ./install_yolo_agent.sh
+
+  Still manual after power cycle: open http://10.1.1.146:9072 and arm
+  the dog (on / go). Auto-go on boot is intentionally not enabled.
 
 Pi restart after deploy
 -----------------------
   sudo cp camera.service /etc/systemd/system/camera.service
   sudo systemctl daemon-reload
   sudo systemctl restart camera
+  # Or re-run: ./enable_boot_services.sh
 
   # Copy updated UI:
   #   srv/index.html  srv/config.json  srv/yolo_mac.json
@@ -70,6 +136,7 @@ Firewall
   Mac must allow inbound TCP 8010 from the LAN (browser loads annotated
   frames directly from the Mac). System Settings → Network → Firewall
   → allow python, or disable firewall on trusted home LAN.
+  Mac must also reach Pi HTTP /command for follow gait.
 
 Safe Pi shutdown before cutting power:
   ssh pi@10.1.1.146 'sudo shutdown -h now'

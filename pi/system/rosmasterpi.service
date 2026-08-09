@@ -9,8 +9,9 @@ WorkingDirectory=/home/pi/system
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
+RestartSec=3
 User=pi
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 
