@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.spatialai.dogyolo</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/shaayeralam/Spatial AI(Robotic Dog)/.venv/bin/python</string>
+        <string>/Users/shaayeralam/Spatial AI(Robotic Dog)/NewVersionDog/mac/dog_yolo_agent.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/shaayeralam/Spatial AI(Robotic Dog)/NewVersionDog/mac</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>DOG_CAMERA_URL</key>
+        <string>http://10.1.1.146:8000/frame.jpg</string>
+        <key>DOG_YOLO_PORT</key>
+        <string>8010</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/tmp/dog_yolo_agent.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/dog_yolo_agent.err</string>
+</dict>
+</plist>

@@ -4,7 +4,7 @@ Requires=network-online.target
 After=network.target sysinit.target network-online.target
 
 # Raw only on this Pi — no ultralytics/torch required.
-# Mac: YOLOv8 Working/dog_yolo_mac.py pulls http://<pi>:8000/frame.jpg
+# Mac: NewVersionDog/mac/dog_yolo_mac.py pulls http://<pi>:8000/frame.jpg
 # Restart: sudo systemctl restart camera
 
 [Service]

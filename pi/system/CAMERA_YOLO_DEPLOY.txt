@@ -26,11 +26,11 @@ Architecture
 
 FOLLOW_TARGET (change chased object)
 ------------------------------------
-  In YOLOv8 Working/dog_yolo_mac.py set one variable:
+  In NewVersionDog/mac/dog_yolo_mac.py set one variable:
 
-    FOLLOW_TARGET = "person"   # COCO class or hierarchy category
+    FOLLOW_TARGET = "tennis racket"   # COCO class or hierarchy category
 
-  Examples: "person", "sports ball", "ball", "dog"
+  Examples: "tennis racket", "person", "sports ball", "ball", "dog", "stick"
   Matching is case-insensitive against original_class OR hierarchy_category.
   No other code changes needed to switch the followed object.
 
@@ -69,11 +69,12 @@ Pi files (deploy to /home/pi/system/):
   srv/config.json          (yolo_mac_host / yolo_mac_port)
   srv/yolo_mac.json        (optional fallback)
 
-Mac files:
-  YOLOv8 Working/dog_yolo_mac.py      — pull + annotate + HTTP serve + follow
-  YOLOv8 Working/dog_yolo_agent.py    — LaunchAgent supervisor
-  YOLOv8 Working/install_yolo_agent.sh
-  YOLOv8 Working/com.spatialai.dogyolo.plist
+Mac files (NewVersionDog/mac/):
+  dog_yolo_mac.py              — pull + annotate + HTTP serve + follow
+  dog_yolo_agent.py            — LaunchAgent supervisor
+  install_yolo_agent.sh
+  com.spatialai.dogyolo.plist
+  yolo11n.pt                   — symlink to workspace root weights
 
 Current LAN defaults
 --------------------
@@ -85,17 +86,17 @@ Current LAN defaults
     - NewVersionDog/pi/system/srv/config.json  (yolo_mac_host)
     - NewVersionDog/pi/system/srv/yolo_mac.json
     - NewVersionDog/pi/system/camera.service   (ExecStartPost URL)
-    - YOLOv8 Working/dog_yolo_mac.py           (DEFAULT_URL Pi IP)
-    - YOLOv8 Working/com.spatialai.dogyolo.plist (DOG_CAMERA_URL)
+    - NewVersionDog/mac/dog_yolo_mac.py        (DEFAULT_URL Pi IP)
+    - NewVersionDog/mac/com.spatialai.dogyolo.plist (DOG_CAMERA_URL)
 
 Mac setup (once)
 ----------------
-  cd "YOLOv8 Working"
+  cd "NewVersionDog/mac"
   chmod +x install_yolo_agent.sh
   ./install_yolo_agent.sh
 
   # Or run manually (follow on by default):
-  source ../.venv/bin/activate
+  source ../../.venv/bin/activate
   python dog_yolo_mac.py --no-window
 
   # Check:
@@ -115,7 +116,7 @@ One-time: enable boot defaults (Pi)
   That enables: rosmasterpi, evoduino, evocar, camera (start on every boot).
 
   Mac YOLO LaunchAgent (login default):
-    cd "YOLOv8 Working"
+    cd "NewVersionDog/mac"
     ./install_yolo_agent.sh
 
   Still manual after power cycle: open http://10.1.1.146:9072 and arm
