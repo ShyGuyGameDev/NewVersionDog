@@ -41,8 +41,13 @@ Follow steer rules
   Left   x <= 0.40     → bias 0  (gs)
   Center 0.44 < x < 0.56 → bias 1 (gs + gr)  # normal right bias
   Hysteresis bands 0.40–0.44 and 0.56–0.60 keep the last zone
-  Trot (FOLLOW_GAIT) while target visible or seen within last 0.8 s; else stop
-
+  Trot (FOLLOW_GAIT) while target visible or seen within last 0.8 s; else stand
+  Miss: start/refresh a 0.8 s HOLD from last sighting (and again on visible→miss edge)
+  After lost halt, require ~0.45 s continuous sighting before resume (stops flicker thrash)
+  Zone bias only updates after ~0.35 s stable zone (stops gs/gr floods)
+  Halt uses website-compatible "stand" (not firmware "stop")
+  Pi HTTP runs on a serialized Mac command worker so YOLO ticks never block on /command
+  Overlay /follow/status show holding, hold_remaining_s, last_seen_age_s, cmd_queue_len
 Enable follow
 -------------
   # Follow is ON by default (robot web stack must be up so /command works):

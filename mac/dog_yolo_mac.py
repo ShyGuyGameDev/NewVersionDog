@@ -33,7 +33,8 @@ import logging
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import List, Optional
+from collections import deque
+from typing import Deque, List, Optional, Tuple
 from urllib.error import URLError
 from urllib.parse import urlencode, urlparse
 from urllib.request import urlopen
@@ -64,8 +65,16 @@ DEFAULT_BIAS = 1
 RIGHT_BIAS = 2
 LEFT_BIAS = 0
 LOST_TIMEOUT_S = 0.8
+# After a loss halt, require continuous sightings this long before walking again.
+RESUME_CONFIRM_S = 0.45
+# Zone must stay put this long before sending gs/gr (stops bias thrash).
+ZONE_STABLE_S = 0.35
 WALK_HEARTBEAT_S = 1.5
 PI_CMD_TIMEOUT_S = 1.5
+# Follow gait traffic uses a shorter timeout so a stuck Pi cannot stall the queue.
+FOLLOW_CMD_TIMEOUT_S = 0.5
+# Website Stop button uses stand; firmware "stop" can leave the dog unresponsive.
+FOLLOW_HALT_CMD = "stand"
 
 object_hierarchy = {
     "stick": ["skis", "baseball bat", "snowboard", "tennis racket"],
@@ -206,30 +215,66 @@ def _placeholder_jpeg(message: str, size=(640, 480)) -> bytes:
 
 
 class ObjectFollowController:
-    """Mac-side follow: hysteresis zones → gait bias → Pi walk/stop."""
+    """Mac-side follow: hysteresis zones → gait bias → Pi walk/halt.
+
+    Perception (`tick`) never blocks on HTTP. A dedicated command worker
+    serializes gs/gr/gait/stand so the 0.8s lost-hold uses real wall time.
+    """
 
     def __init__(self, pi_command_base: str, enabled: bool = False):
         self.pi_command_base = pi_command_base
         self._lock = threading.Lock()
         self.enabled = enabled
         self.last_seen_t: Optional[float] = None
+        self.hold_until_t: Optional[float] = None
         self.last_zone = "center"
+        self.zone_candidate = "center"
+        self.zone_candidate_since: Optional[float] = None
         self.applied_bias: Optional[int] = None
+        self.desired_bias: Optional[int] = None
+        self._pending_bias: Optional[int] = None  # enqueued but not yet applied
         self.walking = False
+        self.holding = False
         self.last_walk_sent_t = 0.0
         self.last_x_norm: Optional[float] = None
         self.target_visible = False
+        self._was_visible = False
+        self._was_holding = False
+        self._was_should_walk = False
+        self._lost_halted = False  # True after a lost-timeout halt until resume confirms
+        self._visible_since: Optional[float] = None
+        self._stop_event = threading.Event()
+        self._cmd_wake = threading.Event()
+        # Queue items: ("raw", cmd) | ("sync_bias", bias) | ("gait",) | ("halt",)
+        self._cmd_queue: Deque[Tuple] = deque()
+        self._cmd_worker = threading.Thread(
+            target=self._command_loop, name="follow-cmd", daemon=True
+        )
+        self._cmd_worker.start()
+
+    def shutdown(self):
+        """Stop the command worker (call on process exit)."""
+        self._stop_event.set()
+        self._cmd_wake.set()
 
     def set_enabled(self, enabled: bool):
         with self._lock:
             was = self.enabled
             self.enabled = enabled
-        if was and not enabled:
-            self._stop()
-            with self._lock:
+            if was and not enabled:
                 self.walking = False
-                self.applied_bias = None
-            logger.info("Follow disabled; stop sent")
+                self.holding = False
+                self.desired_bias = None
+                self._pending_bias = None
+                self.hold_until_t = None
+                self._lost_halted = False
+                self._visible_since = None
+                self._was_visible = False
+                self._was_holding = False
+                self._was_should_walk = False
+                self._enqueue_unlocked("halt", coalesce_halt=True)
+        if was and not enabled:
+            logger.info("Follow disabled; %s queued", FOLLOW_HALT_CMD)
         elif enabled and not was:
             logger.info("Follow enabled; target=%s", FOLLOW_TARGET)
 
@@ -238,16 +283,26 @@ class ObjectFollowController:
             age = None
             if self.last_seen_t is not None:
                 age = time.time() - self.last_seen_t
+            hold_left = None
+            if self.hold_until_t is not None:
+                hold_left = max(0.0, self.hold_until_t - time.time())
             return {
                 "enabled": self.enabled,
                 "target": FOLLOW_TARGET,
                 "gait": FOLLOW_GAIT,
+                "halt_cmd": FOLLOW_HALT_CMD,
                 "zone": self.last_zone,
                 "bias": self.applied_bias,
+                "desired_bias": self.desired_bias,
                 "walking": self.walking,
+                "holding": self.holding,
+                "hold_remaining_s": hold_left,
                 "target_visible": self.target_visible,
+                "lost_halted": self._lost_halted,
                 "last_seen_age_s": age,
                 "x_norm": self.last_x_norm,
+                "cmd_queue_len": len(self._cmd_queue),
+                "cmd_backed_up": len(self._cmd_queue) > 2,
             }
 
     def select_target(self, detections: List[dict]) -> Optional[dict]:
@@ -282,86 +337,213 @@ class ObjectFollowController:
             return LEFT_BIAS
         return DEFAULT_BIAS
 
-    def _send(self, cmd: str) -> bool:
-        return send_pi_command(self.pi_command_base, cmd)
+    def _enqueue_unlocked(self, kind: str, *args, coalesce_halt: bool = False):
+        """Caller must hold self._lock. Coalesce duplicate gait/halt; keep bias syncs ordered."""
+        if coalesce_halt or kind == "halt":
+            # Drop pending gait/bias; keep a single halt at the end.
+            kept: Deque[Tuple] = deque()
+            for item in self._cmd_queue:
+                if item[0] in ("gait", "sync_bias", "halt"):
+                    continue
+                kept.append(item)
+            kept.append(("halt",))
+            self._cmd_queue = kept
+            self._pending_bias = None
+        elif kind == "gait":
+            # At most one pending gait (latest wins). Drop if a halt is already queued.
+            if any(item[0] == "halt" for item in self._cmd_queue):
+                return
+            self._cmd_queue = deque(
+                item for item in self._cmd_queue if item[0] != "gait"
+            )
+            self._cmd_queue.append(("gait",))
+        elif kind == "sync_bias":
+            if any(item[0] == "halt" for item in self._cmd_queue):
+                return
+            bias = int(args[0])
+            # Replace any pending sync_bias with the latest target.
+            self._cmd_queue = deque(
+                item for item in self._cmd_queue if item[0] != "sync_bias"
+            )
+            self._cmd_queue.append(("sync_bias", bias))
+            self._pending_bias = bias
+        else:
+            self._cmd_queue.append((kind, *args))
+        self._cmd_wake.set()
 
-    def sync_bias(self, target_bias: int):
-        """Reset turn with gs, then apply N× gr (absolute; 0 means gs only)."""
-        self._send("gs")
-        for _ in range(max(0, int(target_bias))):
-            self._send("gr")
-
-    def _stop(self):
-        self._send("stop")
+    def _command_loop(self):
+        while not self._stop_event.is_set():
+            self._cmd_wake.wait(timeout=0.25)
+            self._cmd_wake.clear()
+            while not self._stop_event.is_set():
+                with self._lock:
+                    if not self._cmd_queue:
+                        break
+                    item = self._cmd_queue.popleft()
+                kind = item[0]
+                if kind == "halt":
+                    send_pi_command(
+                        self.pi_command_base, FOLLOW_HALT_CMD, timeout=FOLLOW_CMD_TIMEOUT_S
+                    )
+                elif kind == "gait":
+                    ok = send_pi_command(
+                        self.pi_command_base, FOLLOW_GAIT, timeout=FOLLOW_CMD_TIMEOUT_S
+                    )
+                    if ok:
+                        with self._lock:
+                            self.last_walk_sent_t = time.time()
+                elif kind == "sync_bias":
+                    bias = int(item[1])
+                    send_pi_command(
+                        self.pi_command_base, "gs", timeout=FOLLOW_CMD_TIMEOUT_S
+                    )
+                    for _ in range(max(0, bias)):
+                        send_pi_command(
+                            self.pi_command_base, "gr", timeout=FOLLOW_CMD_TIMEOUT_S
+                        )
+                    with self._lock:
+                        self.applied_bias = bias
+                        if self._pending_bias == bias:
+                            self._pending_bias = None
+                elif kind == "raw":
+                    send_pi_command(
+                        self.pi_command_base, str(item[1]), timeout=FOLLOW_CMD_TIMEOUT_S
+                    )
 
     def tick(self, detections: List[dict], frame_width: int):
+        """Update follow state from detections only — never blocks on Pi HTTP."""
         with self._lock:
             if not self.enabled:
                 return
             prev_zone = self.last_zone
+            was_visible = self._was_visible
 
         if frame_width <= 0:
             return
 
         target = self.select_target(detections)
         now = time.time()
-        x_norm = None
+        x_norm: Optional[float] = None
         zone = prev_zone
 
         if target is not None:
             x_norm = float(target["center_x"]) / float(frame_width)
-            zone = self.compute_zone(x_norm, prev_zone)
+            raw_zone = self.compute_zone(x_norm, prev_zone)
             with self._lock:
                 self.last_seen_t = now
-                self.last_zone = zone
+                # Fresh 0.8s hold starts whenever we still see the target, so a miss
+                # keeps gait for LOST_TIMEOUT_S of wall time after the last hit.
+                self.hold_until_t = now + LOST_TIMEOUT_S
                 self.last_x_norm = x_norm
                 self.target_visible = True
-            last_seen = now
+                if self._visible_since is None:
+                    self._visible_since = now
+                # Debounce zone before committing (stops gs/gr thrash on flicker).
+                if raw_zone != self.zone_candidate:
+                    self.zone_candidate = raw_zone
+                    self.zone_candidate_since = now
+                elif (
+                    self.zone_candidate_since is not None
+                    and (now - self.zone_candidate_since) >= ZONE_STABLE_S
+                    and raw_zone != self.last_zone
+                ):
+                    self.last_zone = raw_zone
+                zone = self.last_zone
+            visible = True
         else:
             with self._lock:
                 self.target_visible = False
-                last_seen = self.last_seen_t
+                self._visible_since = None
                 zone = self.last_zone
                 x_norm = self.last_x_norm
+                if was_visible:
+                    # Discover miss now → guarantee a full 0.8s hold from this edge.
+                    self.hold_until_t = now + LOST_TIMEOUT_S
+            visible = False
 
-        should_walk = last_seen is not None and (now - last_seen) < LOST_TIMEOUT_S
+        with self._lock:
+            hold_until = self.hold_until_t
+            lost_halted = self._lost_halted
+            visible_since = self._visible_since
+
+        should_walk = hold_until is not None and now < hold_until
+        holding = should_walk and not visible
+
+        # After a lost halt, demand stable reappearance before walking again.
+        if should_walk and visible and lost_halted:
+            if visible_since is None or (now - visible_since) < RESUME_CONFIRM_S:
+                should_walk = False
+                holding = False
 
         with self._lock:
             applied = self.applied_bias
             walking = self.walking
             last_walk = self.last_walk_sent_t
+            was_holding = self._was_holding
+            was_should_walk = self._was_should_walk
+            self.holding = holding
+            self._was_visible = visible
 
-        if not should_walk:
-            if walking:
-                self._stop()
-                with self._lock:
+            if not should_walk:
+                self._was_holding = False
+                self._was_should_walk = False
+                if walking:
                     self.walking = False
-                    self.applied_bias = None
-                logger.info("Follow: target lost → stop")
-            return
+                    self._lost_halted = True
+                    self.hold_until_t = None
+                    self._enqueue_unlocked("halt", coalesce_halt=True)
+                    logger.info("Follow: target lost → %s", FOLLOW_HALT_CMD)
+                elif (
+                    hold_until is not None
+                    and now >= hold_until
+                    and not self._lost_halted
+                ):
+                    self._lost_halted = True
+                    self.hold_until_t = None
+                    self._enqueue_unlocked("halt", coalesce_halt=True)
+                    logger.info("Follow: target lost → %s", FOLLOW_HALT_CMD)
+                return
 
-        bias = self.zone_to_bias(zone)
-        if applied != bias:
-            self.sync_bias(bias)
-            with self._lock:
-                self.applied_bias = bias
-            logger.info(
-                "Follow: zone=%s bias=%s x=%.3f target=%s",
-                zone, bias, x_norm if x_norm is not None else -1.0, FOLLOW_TARGET,
-            )
+            bias = self.zone_to_bias(zone)
+            self.desired_bias = bias
+            pending = self._pending_bias
 
-        need_walk = (not walking) or (now - last_walk >= WALK_HEARTBEAT_S)
-        if need_walk:
-            if self._send(FOLLOW_GAIT):
-                with self._lock:
-                    self.walking = True
-                    self.last_walk_sent_t = now
+            if holding and not was_holding:
+                logger.info(
+                    "Follow: holding last gait for %.1fs (target=%s)",
+                    LOST_TIMEOUT_S, FOLLOW_TARGET,
+                )
+            elif not holding and was_holding and visible:
+                logger.info("Follow: target reacquired → resume")
+            elif should_walk and not was_should_walk and visible:
+                logger.info("Follow: target acquired → walk")
+
+            if visible:
+                self._lost_halted = False
+
+            self._was_holding = holding
+            self._was_should_walk = True
+
+            # Only steer while target is visible and zone has been stable.
+            if visible and applied != bias and pending != bias:
+                self._enqueue_unlocked("sync_bias", bias)
+                logger.info(
+                    "Follow: zone=%s bias=%s x=%.3f target=%s",
+                    zone, bias, x_norm if x_norm is not None else -1.0, FOLLOW_TARGET,
+                )
+
+            need_walk = (not walking) or (now - last_walk >= WALK_HEARTBEAT_S)
+            if need_walk:
+                self.walking = True
+                self.last_walk_sent_t = now
+                self._enqueue_unlocked("gait")
 
 
 class LatestFrame:
     def __init__(self):
         self.lock = threading.Lock()
         self.frame = None
+        self.frame_id = 0
         self.detections: List[dict] = []
         self.annotated_jpeg: bytes = _placeholder_jpeg("Starting YOLO...")
         self.model_loaded = False
@@ -374,10 +556,13 @@ class LatestFrame:
     def set_frame(self, frame: np.ndarray):
         with self.lock:
             self.frame = frame
+            self.frame_id += 1
 
-    def get_frame_copy(self) -> Optional[np.ndarray]:
+    def get_frame_copy(self) -> Tuple[Optional[np.ndarray], int]:
         with self.lock:
-            return None if self.frame is None else self.frame.copy()
+            if self.frame is None:
+                return None, self.frame_id
+            return self.frame.copy(), self.frame_id
 
     def set_detections(self, detections: List[dict]):
         with self.lock:
@@ -431,21 +616,37 @@ def draw_follow_overlay(frame: np.ndarray, follow: Optional[ObjectFollowControll
     st = follow.status()
     if not st.get("enabled"):
         return frame
-    mode = FOLLOW_GAIT.upper() if st.get("walking") else "STOP"
+    if st.get("holding"):
+        mode = "HOLD"
+        color = (0, 255, 255)
+    elif st.get("walking"):
+        mode = FOLLOW_GAIT.upper()
+        color = (0, 200, 255)
+    else:
+        mode = "STOP"
+        color = (0, 165, 255)
     bias = st.get("bias")
     bias_s = "?" if bias is None else str(bias)
     zone = st.get("zone") or "?"
     x = st.get("x_norm")
     x_s = f"{x:.2f}" if isinstance(x, float) else "-"
-    line = f"Follow {FOLLOW_TARGET} | {zone} bias={bias_s} | {mode} x={x_s}"
-    color = (0, 200, 255) if st.get("walking") else (0, 165, 255)
-    cv2.putText(frame, line, (10, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.55, color, 2)
+    age = st.get("last_seen_age_s")
+    age_s = f"{age:.2f}s" if isinstance(age, float) else "-"
+    hold_left = st.get("hold_remaining_s")
+    hold_s = f"{hold_left:.2f}s" if isinstance(hold_left, float) and st.get("holding") else "-"
+    qlen = st.get("cmd_queue_len") or 0
+    backed = " Q!" if st.get("cmd_backed_up") else ""
+    line = (
+        f"Follow {FOLLOW_TARGET} | {zone} bias={bias_s} | {mode} "
+        f"hold={hold_s} age={age_s} x={x_s} q={qlen}{backed}"
+    )
+    cv2.putText(frame, line, (10, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.48, color, 2)
     # Zone guides
     h, w = frame.shape[:2]
     for frac, col in ((LEFT_X, (255, 128, 0)), (0.5 - CENTER_HALF, (180, 180, 180)),
                       (0.5 + CENTER_HALF, (180, 180, 180)), (RIGHT_X, (255, 128, 0))):
-        x = int(frac * w)
-        cv2.line(frame, (x, 0), (x, h), col, 1)
+        xi = int(frac * w)
+        cv2.line(frame, (xi, 0), (xi, h), col, 1)
     return frame
 
 
@@ -455,11 +656,17 @@ def detection_worker(
     stop: threading.Event,
     follow: Optional[ObjectFollowController],
 ):
+    last_frame_id = -1
     while not stop.is_set():
-        frame = state.get_frame_copy()
+        frame, frame_id = state.get_frame_copy()
         if frame is None:
             time.sleep(0.02)
             continue
+        if frame_id == last_frame_id:
+            # Do not re-infer / re-tick follow on a stale frame (camera gaps).
+            time.sleep(0.01)
+            continue
+        last_frame_id = frame_id
         try:
             dets = classify_frame(model, frame)
         except Exception as e:
@@ -666,6 +873,9 @@ def main():
     finally:
         stop.set()
         follow.set_enabled(False)
+        # Brief pause so the stop command can leave the queue before worker exit.
+        time.sleep(0.15)
+        follow.shutdown()
         if httpd is not None:
             httpd.shutdown()
         if not args.no_window:

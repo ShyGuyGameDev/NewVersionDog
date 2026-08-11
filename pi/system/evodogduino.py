@@ -24,9 +24,9 @@ ser_port = None
 ser_baud = None
 #when True, infothread skips publishing status polls so go/poses are not dropped
 pause_status_polls = False
-#UI Balance OFF did not unstick this dog; do not auto-send A/N after go
-#(re-enable only if a fresh serialtest Stage B shows serial alive + balance-only freeze)
-AUTO_BALANCE_OFF_AFTER_GO = False
+#dead IMU: after go, balance stays on and freezes/wedges poses.
+#Auto-send A/N ~1.5s after every go (before pose buttons wedge it).
+AUTO_BALANCE_OFF_AFTER_GO = True
 #created early so deferred balance-off threads can acquire it
 lock = threading.Lock()
 
@@ -36,11 +36,11 @@ FALLBACK_BAUD = 500000
 
 #roscmd = {}
 
-def openSerial( port, baudrate ):
+def openSerial( port, baudrate, reset = False ):
     """
-    Open a serial port without toggling DTR/RTS when possible.
-    Reopening with DTR can reset some boards and wipe calibration; on this
-    dog reopen often does NOT reset, so reconnect cannot heal a wedge anyway.
+    Open a serial port. When reset=True, pulse DTR so the Arduino reboots
+    (clears a wedged motion engine). When reset=False, keep DTR/RTS low so
+    ordinary reconnects do not thrash calibration mid-session.
     """
     timeout = 0.1
     write_timeout = 0.5
@@ -57,8 +57,16 @@ def openSerial( port, baudrate ):
         #older pyserial: fewer kwargs
         s = serial.Serial( port, baudrate, timeout = timeout, write_timeout = write_timeout )
     try:
-        s.setDTR( False )
-        s.setRTS( False )
+        if reset:
+            #pulse DTR: high then low forces many USB-serial Arduino boards to reboot
+            s.setDTR( False )
+            time.sleep( 0.05 )
+            s.setDTR( True )
+            time.sleep( 0.1 )
+            s.setDTR( False )
+        else:
+            s.setDTR( False )
+            s.setRTS( False )
     except:
         pass
     return s
@@ -133,28 +141,27 @@ def listSerialPorts():
             ordered.append( p )
     return ordered
 
-def probePort( port, baudrate ):
+def probePort( port, baudrate, reset = False ):
     """
-    Open port@baud, wait briefly, send 'i', and look for an 'info' reply.
+    Open port@baud, optionally reset Arduino, wait, send 'i', look for 'info'.
     Returns an open Serial on success, or None.
     """
     s = None
     try:
-        print "Trying ", port, "@", baudrate
-        s = openSerial( port, baudrate )
+        print "Trying ", port, "@", baudrate, ("(reset)" if reset else "")
+        s = openSerial( port, baudrate, reset = reset )
     except Exception as e:
         print "Could not open ", port, "@", baudrate, ":", e
         return None
     try:
-        #this board often does not auto-reset on open; short settle is enough
-        time.sleep( 1.0 )
+        time.sleep( 2.5 if reset else 0.8 )
         try:
             s.flushInput()
         except:
             pass
         s.write( "i\n" )
         reply = ""
-        deadline = time.time() + 1.0
+        deadline = time.time() + 1.5
         while time.time() < deadline:
             chunk = s.read( 256 )
             if chunk:
@@ -173,17 +180,22 @@ def probePort( port, baudrate ):
     return None
 
 def connectFallback( ports ):
-    """Old behavior: open first available port at 500000 with no handshake."""
+    """Last resort: open+reset first port even if handshake failed."""
     global ser, ser_port, ser_baud
     if not ports:
         ports = [ '/dev/ttyUSB0', '/dev/ttyACM0', '/dev/ttyACM1', '/dev/ttyUSB1' ]
     for port in ports:
         try:
-            print "Fallback open ", port, "@", FALLBACK_BAUD
-            ser = openSerial( port, FALLBACK_BAUD )
+            print "Fallback open+reset ", port, "@", FALLBACK_BAUD
+            ser = openSerial( port, FALLBACK_BAUD, reset = True )
             ser_port = port
             ser_baud = FALLBACK_BAUD
-            print "OPENED (no handshake)", port, "@", FALLBACK_BAUD
+            time.sleep( 2.5 )
+            try:
+                ser.flushInput()
+            except:
+                pass
+            print "OPENED (reset, no handshake)", port, "@", FALLBACK_BAUD
             return
         except:
             print "Could not connect to ", port
@@ -191,7 +203,7 @@ def connectFallback( ports ):
             ser_port = None
             ser_baud = None
 
-# Establish the connection: probe every port/baud until firmware answers
+# Establish the connection: reset once per port, then try bauds
 def connect():
     global ser, ser_port, ser_baud
     prev_port = ser_port
@@ -207,22 +219,26 @@ def connect():
         return
 
     print "Serial candidates:", ports
-    #if we already found a working combo earlier, try it first on reconnect
-    try_first = []
+    #prefer previously-working combo first (no reset thrash on soft reconnect)
     if prev_port and prev_baud:
-        try_first.append( ( prev_port, prev_baud ) )
-    for port in ports:
-        for baud in BAUD_CANDIDATES:
-            if ( port, baud ) not in try_first:
-                try_first.append( ( port, baud ) )
-
-    for port, baud in try_first:
-        s = probePort( port, baud )
+        s = probePort( prev_port, prev_baud, reset = False )
         if s is not None:
             ser = s
-            ser_port = port
-            ser_baud = baud
+            ser_port = prev_port
+            ser_baud = prev_baud
             return
+
+    for port in ports:
+        #one DTR reset per port, then other bauds without re-resetting
+        first = True
+        for baud in BAUD_CANDIDATES:
+            s = probePort( port, baud, reset = first )
+            first = False
+            if s is not None:
+                ser = s
+                ser_port = port
+                ser_baud = baud
+                return
 
     print "NO FIRMWARE RESPONSE on any port/baud"
     connectFallback( ports )
@@ -353,24 +369,19 @@ def offsetsRegistered( before_line, after_line ):
         return False
     return True
 
-#this dog's IMU appears dead; balance mode (default on at 'go') can freeze
-#poses. An earlier serial test needed A/N ~10s after go. AUTO_BALANCE_OFF
-#is currently False because UI Balance OFF no longer unsticks the dog —
-#auto A/N under the lock was more likely to hurt than help. If Stage B
-#later shows serial still answers after go and only balance freezes poses,
-#set AUTO_BALANCE_OFF_AFTER_GO = True (uses ~10s delay, deferred off-lock).
+#this dog's IMU appears dead; balance mode (default on at 'go') freezes
+#poses and can wedge the MCU if left on. Send A/N quickly (~1.5s) after
+#every go — waiting ~10s is too late (poses arrive first, then silence).
+#Always send A/N even if 'i' is quiet; skipping left us wedged every time.
 def disableBalanceAfterGo():
     #runs in a background thread AFTER listener releases the lock
-    time.sleep( 10.0 )
-    #confirm firmware still answers before poking A/N
-    line = ""
+    time.sleep( 1.5 )
     try:
         lock.acquire()
         try:
             line = readInfoLine()
             if not line:
-                print "skipping balance-off: firmware silent after go (wedged?)"
-                return
+                print "firmware quiet after go; sending A/N anyway"
             ser.write( "A\n" )
             ser.write( "N\n" )
             print "balance disabled after go (dead IMU freezes poses otherwise)"
@@ -404,6 +415,11 @@ def safeGo():
             try:
                 ser.write( "go\n" )
                 print "go sent (unverified)"
+                #balance off immediately while lock is still held
+                time.sleep( 0.3 )
+                ser.write( "A\n" )
+                ser.write( "N\n" )
+                print "balance disabled right after go"
                 scheduleBalanceOffAfterGo()
             except:
                 print "go dropped (serial error)"
@@ -419,6 +435,10 @@ def safeGo():
                     print "go sent (offsets verified)"
                     print "  info before e:", before
                     print "  info after e:", after
+                    time.sleep( 0.3 )
+                    ser.write( "A\n" )
+                    ser.write( "N\n" )
+                    print "balance disabled right after go"
                     scheduleBalanceOffAfterGo()
                 except:
                     print "go dropped (serial error)"
@@ -429,6 +449,8 @@ def safeGo():
         print "Sending go now would wedge it until a power cycle."
         print "Power-cycle the dog, wait 5s, then try again."
     finally:
+        #keep status polls paused briefly so k-spam does not race A/N
+        time.sleep( 1.0 )
         pause_status_polls = False
 
 connect()
