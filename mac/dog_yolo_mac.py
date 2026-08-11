@@ -53,7 +53,7 @@ MODEL_PATH = "yolo11n.pt"
 CONF_THRESHOLD = 0.5
 
 # Change this only to switch the chased object (COCO class or hierarchy category).
-FOLLOW_TARGET = "tennis racket"
+FOLLOW_TARGET = "bottle"
 # Gait command sent while following (firmware: walk / trot).
 FOLLOW_GAIT = "trot"
 
@@ -64,9 +64,6 @@ CENTER_HALF = 0.06  # center when 0.44 < x < 0.56
 DEFAULT_BIAS = 1
 RIGHT_BIAS = 2
 LEFT_BIAS = 0
-LOST_TIMEOUT_S = 0.8
-# After a loss halt, require continuous sightings this long before walking again.
-RESUME_CONFIRM_S = 0.45
 # Zone must stay put this long before sending gs/gr (stops bias thrash).
 ZONE_STABLE_S = 0.35
 WALK_HEARTBEAT_S = 1.5
@@ -217,8 +214,10 @@ def _placeholder_jpeg(message: str, size=(640, 480)) -> bytes:
 class ObjectFollowController:
     """Mac-side follow: hysteresis zones → gait bias → Pi walk/halt.
 
-    Perception (`tick`) never blocks on HTTP. A dedicated command worker
-    serializes gs/gr/gait/stand so the 0.8s lost-hold uses real wall time.
+    Once the target has been seen, the dog keeps trotting even if the target
+    disappears, steering with the last known direction. Only /follow/off halts.
+    Perception (`tick`) never blocks on HTTP; a dedicated command worker
+    serializes gs/gr/gait/stand.
     """
 
     def __init__(self, pi_command_base: str, enabled: bool = False):
@@ -226,7 +225,6 @@ class ObjectFollowController:
         self._lock = threading.Lock()
         self.enabled = enabled
         self.last_seen_t: Optional[float] = None
-        self.hold_until_t: Optional[float] = None
         self.last_zone = "center"
         self.zone_candidate = "center"
         self.zone_candidate_since: Optional[float] = None
@@ -234,15 +232,10 @@ class ObjectFollowController:
         self.desired_bias: Optional[int] = None
         self._pending_bias: Optional[int] = None  # enqueued but not yet applied
         self.walking = False
-        self.holding = False
         self.last_walk_sent_t = 0.0
         self.last_x_norm: Optional[float] = None
         self.target_visible = False
-        self._was_visible = False
-        self._was_holding = False
-        self._was_should_walk = False
-        self._lost_halted = False  # True after a lost-timeout halt until resume confirms
-        self._visible_since: Optional[float] = None
+        self._acquired = False  # target seen at least once since enable
         self._stop_event = threading.Event()
         self._cmd_wake = threading.Event()
         # Queue items: ("raw", cmd) | ("sync_bias", bias) | ("gait",) | ("halt",)
@@ -263,15 +256,9 @@ class ObjectFollowController:
             self.enabled = enabled
             if was and not enabled:
                 self.walking = False
-                self.holding = False
                 self.desired_bias = None
                 self._pending_bias = None
-                self.hold_until_t = None
-                self._lost_halted = False
-                self._visible_since = None
-                self._was_visible = False
-                self._was_holding = False
-                self._was_should_walk = False
+                self._acquired = False
                 self._enqueue_unlocked("halt", coalesce_halt=True)
         if was and not enabled:
             logger.info("Follow disabled; %s queued", FOLLOW_HALT_CMD)
@@ -283,9 +270,6 @@ class ObjectFollowController:
             age = None
             if self.last_seen_t is not None:
                 age = time.time() - self.last_seen_t
-            hold_left = None
-            if self.hold_until_t is not None:
-                hold_left = max(0.0, self.hold_until_t - time.time())
             return {
                 "enabled": self.enabled,
                 "target": FOLLOW_TARGET,
@@ -295,10 +279,8 @@ class ObjectFollowController:
                 "bias": self.applied_bias,
                 "desired_bias": self.desired_bias,
                 "walking": self.walking,
-                "holding": self.holding,
-                "hold_remaining_s": hold_left,
                 "target_visible": self.target_visible,
-                "lost_halted": self._lost_halted,
+                "acquired": self._acquired,
                 "last_seen_age_s": age,
                 "x_norm": self.last_x_norm,
                 "cmd_queue_len": len(self._cmd_queue),
@@ -416,7 +398,6 @@ class ObjectFollowController:
             if not self.enabled:
                 return
             prev_zone = self.last_zone
-            was_visible = self._was_visible
 
         if frame_width <= 0:
             return
@@ -431,13 +412,14 @@ class ObjectFollowController:
             raw_zone = self.compute_zone(x_norm, prev_zone)
             with self._lock:
                 self.last_seen_t = now
-                # Fresh 0.8s hold starts whenever we still see the target, so a miss
-                # keeps gait for LOST_TIMEOUT_S of wall time after the last hit.
-                self.hold_until_t = now + LOST_TIMEOUT_S
                 self.last_x_norm = x_norm
                 self.target_visible = True
-                if self._visible_since is None:
-                    self._visible_since = now
+                if not self._acquired:
+                    self._acquired = True
+                    logger.info(
+                        "Follow: target acquired → %s (keeps going until follow off)",
+                        FOLLOW_GAIT,
+                    )
                 # Debounce zone before committing (stops gs/gr thrash on flicker).
                 if raw_zone != self.zone_candidate:
                     self.zone_candidate = raw_zone
@@ -453,78 +435,25 @@ class ObjectFollowController:
         else:
             with self._lock:
                 self.target_visible = False
-                self._visible_since = None
                 zone = self.last_zone
                 x_norm = self.last_x_norm
-                if was_visible:
-                    # Discover miss now → guarantee a full 0.8s hold from this edge.
-                    self.hold_until_t = now + LOST_TIMEOUT_S
             visible = False
 
         with self._lock:
-            hold_until = self.hold_until_t
-            lost_halted = self._lost_halted
-            visible_since = self._visible_since
+            # Never walked yet: wait for the first sighting.
+            if not self._acquired:
+                return
 
-        should_walk = hold_until is not None and now < hold_until
-        holding = should_walk and not visible
-
-        # After a lost halt, demand stable reappearance before walking again.
-        if should_walk and visible and lost_halted:
-            if visible_since is None or (now - visible_since) < RESUME_CONFIRM_S:
-                should_walk = False
-                holding = False
-
-        with self._lock:
             applied = self.applied_bias
             walking = self.walking
             last_walk = self.last_walk_sent_t
-            was_holding = self._was_holding
-            was_should_walk = self._was_should_walk
-            self.holding = holding
-            self._was_visible = visible
-
-            if not should_walk:
-                self._was_holding = False
-                self._was_should_walk = False
-                if walking:
-                    self.walking = False
-                    self._lost_halted = True
-                    self.hold_until_t = None
-                    self._enqueue_unlocked("halt", coalesce_halt=True)
-                    logger.info("Follow: target lost → %s", FOLLOW_HALT_CMD)
-                elif (
-                    hold_until is not None
-                    and now >= hold_until
-                    and not self._lost_halted
-                ):
-                    self._lost_halted = True
-                    self.hold_until_t = None
-                    self._enqueue_unlocked("halt", coalesce_halt=True)
-                    logger.info("Follow: target lost → %s", FOLLOW_HALT_CMD)
-                return
 
             bias = self.zone_to_bias(zone)
             self.desired_bias = bias
             pending = self._pending_bias
 
-            if holding and not was_holding:
-                logger.info(
-                    "Follow: holding last gait for %.1fs (target=%s)",
-                    LOST_TIMEOUT_S, FOLLOW_TARGET,
-                )
-            elif not holding and was_holding and visible:
-                logger.info("Follow: target reacquired → resume")
-            elif should_walk and not was_should_walk and visible:
-                logger.info("Follow: target acquired → walk")
-
-            if visible:
-                self._lost_halted = False
-
-            self._was_holding = holding
-            self._was_should_walk = True
-
-            # Only steer while target is visible and zone has been stable.
+            # Only steer while target is visible and zone has been stable; when
+            # not visible, the last synced bias keeps the last known direction.
             if visible and applied != bias and pending != bias:
                 self._enqueue_unlocked("sync_bias", bias)
                 logger.info(
@@ -616,14 +545,13 @@ def draw_follow_overlay(frame: np.ndarray, follow: Optional[ObjectFollowControll
     st = follow.status()
     if not st.get("enabled"):
         return frame
-    if st.get("holding"):
-        mode = "HOLD"
-        color = (0, 255, 255)
-    elif st.get("walking"):
+    if st.get("walking"):
         mode = FOLLOW_GAIT.upper()
         color = (0, 200, 255)
+        if not st.get("target_visible"):
+            mode += "*"  # trotting blind on last known direction
     else:
-        mode = "STOP"
+        mode = "WAIT"
         color = (0, 165, 255)
     bias = st.get("bias")
     bias_s = "?" if bias is None else str(bias)
@@ -632,13 +560,11 @@ def draw_follow_overlay(frame: np.ndarray, follow: Optional[ObjectFollowControll
     x_s = f"{x:.2f}" if isinstance(x, float) else "-"
     age = st.get("last_seen_age_s")
     age_s = f"{age:.2f}s" if isinstance(age, float) else "-"
-    hold_left = st.get("hold_remaining_s")
-    hold_s = f"{hold_left:.2f}s" if isinstance(hold_left, float) and st.get("holding") else "-"
     qlen = st.get("cmd_queue_len") or 0
     backed = " Q!" if st.get("cmd_backed_up") else ""
     line = (
         f"Follow {FOLLOW_TARGET} | {zone} bias={bias_s} | {mode} "
-        f"hold={hold_s} age={age_s} x={x_s} q={qlen}{backed}"
+        f"age={age_s} x={x_s} q={qlen}{backed}"
     )
     cv2.putText(frame, line, (10, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.48, color, 2)
     # Zone guides
