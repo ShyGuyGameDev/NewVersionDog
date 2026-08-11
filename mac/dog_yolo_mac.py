@@ -53,7 +53,7 @@ MODEL_PATH = "yolo11n.pt"
 CONF_THRESHOLD = 0.5
 
 # Change this only to switch the chased object (COCO class or hierarchy category).
-FOLLOW_TARGET = "bottle"
+FOLLOW_TARGET = "tennis racket"
 # Gait command sent while following (firmware: walk / trot).
 FOLLOW_GAIT = "trot"
 
