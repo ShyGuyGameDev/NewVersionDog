@@ -402,6 +402,32 @@ def scheduleBalanceOffAfterGo():
     t.daemon = True
     t.start()
 
+#status-poll / meta commands that never need a liveness check
+VERIFY_EXEMPT = ( "i", "k", "u", "noop" )
+
+def verifyFirmwareAlive( cmd ):
+    """
+    Called (with the command lock held) after a pose command is sent.
+    The dead-IMU firmware sometimes wedges on a pose (observed: 'stand'
+    right after go) — serial TX keeps working but the MCU ignores
+    everything until reset. Poll 'i'; if it stays silent, DTR-reset the
+    Arduino so the user can recover with Motors On + Go instead of a
+    full power cycle.
+    """
+    c = cmd.strip()
+    if not c or not c.isalpha() or c.lower() in VERIFY_EXEMPT:
+        return
+    for attempt in range( 3 ):
+        if readInfoLine():
+            if attempt > 0:
+                print "firmware slow but alive after '" + c + "' (reply on try", attempt + 1, ")"
+            return
+        time.sleep( 0.3 )
+    print "FIRMWARE WEDGED after '" + c + "': no info reply in ~1.5s"
+    print "Auto-recovering with DTR reset (motors will drop!)"
+    reconnect()
+    print "Arduino reset done; motors are OFF. Press Motors On, then Go."
+
 #the firmware wedges permanently (until power cycle) if 'go' arrives
 #before its calibration offsets are registered. Verify e: changed the
 #info joint targets before sending go. If we cannot verify, refuse.
@@ -605,6 +631,8 @@ def listener(ros_data):
                 elif ( cmdcmd != "" ):
                     print "Sending ", cmdcmd
                     send( cmdcmd.encode('utf-8') + "\n" )
+                    #catch the dead-IMU wedge the instant it happens
+                    verifyFirmwareAlive( cmdcmd )
             elif ( cmd["command"] == "action" ):
                 inp = cmd["v1"]
             elif ( cmd["command"] == "sequence" ):
