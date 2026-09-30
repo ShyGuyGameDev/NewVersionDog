@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 LaunchAgent entrypoint for Mac YOLO.
-
+k cool
 Keeps dog_yolo_mac.py running headlessly so the robot website can:
   - hit /start when the camera turns on
   - pull /annotated.jpg for the right-hand camera panel
